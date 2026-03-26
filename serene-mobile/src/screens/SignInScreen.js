@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import {View,Text,Image,TouchableOpacity,StyleSheet,Alert,} from "react-native";
 import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";

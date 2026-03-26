@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
-import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,TextInput,} from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,
+  TextInput, ActivityIndicator, Linking,} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import CommunityTabButton from "../components/CommunityTabButton"; // Reused for tabs
+import axios from "axios";
+import { AuthContext } from "../context/AuthContext";
 
-// NOTE: Ensure these PNG assets exist in your src/assets/ folder:
 const BackIcon = require("../assets/BackIcon.png");
 const PhoneIcon = require("../assets/phone-call.png"); // Icon for phone/call action
 const TimeIcon = require("../assets/clock.png"); // Icon for time/schedule
@@ -11,99 +13,80 @@ const UserGroupIcon = require("../assets/group.png"); // Icon for Counselors/Vol
 const WebsiteIcon = require("../assets/global.png"); // Icon for website link
 const LocationIcon = require("../assets/LocationIcon.png"); // Icon for website link
 const SearchIcon = require("../assets/SearchIcon.png"); // Icon for search bar
-const WhatsappIcon = require("../assets/whatsapp.png");
+const WhatsappIcon = require("../assets/MessageIcon.png");
 const CallIcon2 = require("../assets/phone-call.png");
 
-// --- Dummy Data ---
-const HOTLINE_DATA = [
-  {
-    id: 1,
-    name: "Rozan Counseling Help Line (RCHL)",
-    tags: ["Everyone"],
-    hours: "9:00 AM - 5:00 PM",
-    staff: "Counselors",
-    phone: "051-5150992",
-    web: "rozan.org",
-  },
-  {
-    id: 2,
-    name: "Bedari Helpline",
-    tags: ["Women"],
-    hours: "9:00 AM - 5:00 PM",
-    staff: "Volunteers",
-    phone: "0300-5251717",
-    web: "bedari.org.pk",
-  },
-  {
-    id: 3,
-    name: "Umang",
-    tags: ["Women", "Youth", "Children"],
-    hours: "9:00 AM - 5:00 PM",
-    staff: "Volunteers",
-    phone: "0300-5251717",
-    web: "umang.org.pk",
-  },
-  {
-    id: 4,
-    name: "Rozan Counseling Help Line (RCHL)",
-    tags: ["Everyone"],
-    hours: "9:00 AM - 5:00 PM",
-    staff: "Counselors",
-    phone: "051-5150992",
-    web: "rozan.org",
-  },
-  {
-    id: 5,
-    name: "Bedari Helpline",
-    tags: ["Women"],
-    hours: "9:00 AM - 5:00 PM",
-    staff: "Volunteers",
-    phone: "0300-5251717",
-    web: "bedari.org.pk",
-  },
-];
-
-const PROFESSIONAL_DATA = [
-  {
-    id: 1,
-    name: "Dr. Ayesha Khan",
-    expertise: ["Trauma", "Abuse Cases",'stress','domestic abuse'],
-    years: "3+",
-    fee: "$50 for 50mins",
-    location: "F-7, Islamabad Medical Complex",
-  },
-  {
-    id: 2,
-    name: "Dr. Umer Aalam",
-    expertise: ["Stress Relief", "Anger control", "Bipolar Disorder"],
-    years: "7+",
-    fee: "$25 for 50mins",
-    location: "DHA, phase 2, Sector -B, street 9",
-  },
-  {
-    id: 3,
-    name: "Dr. Mahnoor Fahad",
-    expertise: ["Trauma", "Abuse Cases","anxiety"],
-    years: "5+",
-    fee: "$42 for 60mins",
-    location: "DHA, phase 2, Sector -B, street 9",
-  },
-  {
-    id: 4,
-    name: "Dr. Abdul Ahad",
-    expertise: ["Stress", "stress control", "Bipolar Disorder"],
-    years: "7+",
-    fee: "$25 for 50mins",
-    location: "DHA, phase 2, Sector -B, street 9",
-  },
-  
-];
-
-const CrisisSupportScreen = ({ navigation ,route}) => {
+const CrisisSupportScreen = ({ navigation, route }) => {
   // Use the initialTab prop to set the starting state
-  // ✅ EXTRACTION: Get initial tab from route params, fallback to 'hotlines'
+  //EXTRACTION: Get initial tab from route params, fallback to 'hotlines'
+  const { API_URL } = useContext(AuthContext);
   const { tab } = route.params || { tab: "hotlines" };
   const [activeTab, setActiveTab] = useState(tab);
+  const [hotlines, setHotlines] = useState([]);
+  const [professionals, setProfessionals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // ✅ FETCH DATA FROM BACKEND
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      if (activeTab === "hotlines") {
+        const res = await axios.get(`${API_URL}/support/hotlines`);
+        setHotlines(res.data.data);
+      } else {
+        const res = await axios.get(
+          `${API_URL}/support/professionals?search=${searchQuery}`,
+        );
+        setProfessionals(res.data.data);
+      }
+    } catch (err) {
+      console.log("Error fetching support data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenWebsite = (url) => {
+    if (!url) return;
+
+    // Ensure the URL has http or https prefix
+    const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+
+    Linking.openURL(fullUrl).catch((err) =>
+      console.error("Couldn't load page", err),
+    );
+  };
+
+  // 📞 Handler for Phone Calls
+  const handleCall = (phoneNumber) => {
+    if (!phoneNumber) return;
+    Linking.openURL(`tel:${phoneNumber}`).catch((err) =>
+      console.error("Error opening dialer", err),
+    );
+  };
+
+  // 💬 Handler for SMS/WhatsApp
+  const handleMessage = (phoneNumber, doctorName) => {
+    if (!phoneNumber) return;
+    const message = `Hey, I want to book an appointment with ${doctorName}.`;
+
+    // This uses the standard SMS protocol which works for both Android/iOS
+    Linking.openURL(
+      `sms:${phoneNumber}?body=${encodeURIComponent(message)}`,
+    ).catch((err) => console.error("Error opening SMS app", err));
+  };
+
+  useEffect(() => {
+    // Only fetch professional data if searching, or always fetch hotlines
+    if (
+      activeTab === "hotlines" ||
+      searchQuery.length > 2 ||
+      searchQuery.length === 0
+    ) {
+      fetchData();
+    }
+  }, [activeTab, searchQuery]);
 
   // Sync state if the user navigates here again with a different tab parameter
   useEffect(() => {
@@ -116,14 +99,14 @@ const CrisisSupportScreen = ({ navigation ,route}) => {
   const ExpandableText = ({ fullText, maxLines = 3 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // 💡 FIX 1: Define condensed text length
+    // FIX 1: Define condensed text length
     const MAX_CHARACTERS = 80;
     const condensedText =
       fullText.length > MAX_CHARACTERS
         ? fullText.substring(0, MAX_CHARACTERS) + "..."
         : fullText;
 
-    // 💡 FIX 2: Determine if the button should exist by comparing content length
+    // FIX 2: Determine if the button should exist by comparing content length
     const needsExpansionButton = fullText.length > MAX_CHARACTERS;
     const displayContent = isExpanded ? fullText : condensedText;
     const buttonText = isExpanded ? "Read less ᐱ" : "Read more ⇣";
@@ -160,9 +143,7 @@ const CrisisSupportScreen = ({ navigation ,route}) => {
           <Text style={styles.cardTitle}>{data.name}</Text>
 
           <ExpandableText
-            fullText={
-              "It offers a confidential, non-judgmental space for young people, women, and children to share.We have also established a survivor centered, multisectoral response mechanism to deal cases of gender based violence (GBV).  The contact details of our services are given below."
-            }
+            fullText={data.description || "No description available."}
           />
         </View>
       </View>
@@ -201,55 +182,62 @@ const CrisisSupportScreen = ({ navigation ,route}) => {
               style={styles.contactIcon}
               resizeMode="contain"
             />
-            <Text style={styles.contactText}>{data.web}</Text>
+            <TouchableOpacity onPress={() => handleOpenWebsite(data.web)}>
+              <Text style={[styles.contactText, styles.linkText]}>
+                {data.web}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
     </View>
   );
 
-  // --- Reusable Professional Card Component (WITH REQUIRED CHANGES) ---
-  const ProfessionalCard = ({ data }) => (
+  const ProfessionalCard = ({ data, onCall, onMessage }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <Image
-          source={ProfessionalDataImages[data.id]}
+          source={
+            data.imageUrl
+              ? { uri: data.imageUrl }
+              : require("../assets/DoctorFallback.avif")
+          }
           style={styles.professionalAvatar}
           resizeMode="cover"
         />
-        
-        {/* MODIFIED: headerText now manages the right-aligned buttons */}
+
         <View style={styles.headerText}>
           <View style={styles.nameAndActionsRow}>
             <View style={styles.nameColumn}>
               <Text style={styles.cardTitle}>{data.name}</Text>
-              <Text style={styles.experienceText}>{data.years} of experience</Text>
+              <Text style={styles.experienceText}>
+                {data.years} of experience
+              </Text>
             </View>
 
             {/* ✅ MODIFICATION: Call and WhatsApp buttons moved here (Top-Right) */}
             <View style={styles.topRightActions}>
-              <TouchableOpacity onPress={() => console.log(`Call ${data.name}`)}>
+              <TouchableOpacity onPress={() => onCall(data.phone)}>
                 <Image
                   source={CallIcon2}
                   style={styles.actionIcon}
                   resizeMode="contain"
                 />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => console.log(`WhatsApp ${data.name}`)}>
+              <TouchableOpacity
+                onPress={() => onMessage(data.phone, data.name)}
+              >
                 <Image
                   source={WhatsappIcon}
-                  style={styles.actionIcon}
+                  style={[styles.actionIcon,styles.actionIcon2]}
                   resizeMode="contain"
                 />
               </TouchableOpacity>
             </View>
           </View>
-          
+
           <Text style={styles.feeText}>{data.fee}</Text>
 
-          {/* ✅ MODIFICATION 2: Interchange Location and Expertise */}
-          
-          {/* LOCATION (Now first) */}
           <View style={styles.locationRow}>
             <Image
               source={LocationIcon}
@@ -268,47 +256,32 @@ const CrisisSupportScreen = ({ navigation ,route}) => {
               </Text>
             ))}
           </View>
-
         </View>
       </View>
-
-      {/* ✅ MODIFICATION 3: Removed professionalActions entirely (No Profile button) */}
     </View>
   );
 
+  const renderContent = () => {
+    if (loading)
+      return (
+        <ActivityIndicator
+          size="large"
+          color="#512DA8"
+          style={{ marginTop: 50 }}
+        />
+      );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Dummy images for professional cards
-  const ProfessionalDataImages = {
-    1: require("../assets/Doctor1.png"),
-    2: require("../assets/Doctor2.png"),
-    3: require("../assets/Doctor1.png"),
-    4: require("../assets/Doctor2.png"),
-  };
-
-const renderContent = () => {
     if (activeTab === "hotlines") {
-      return HOTLINE_DATA.map((data) => <HotlineCard key={data.id} data={data} />);
+      return hotlines.map((item) => <HotlineCard key={item._id} data={item} />);
     } else {
-      return PROFESSIONAL_DATA.map((data) => <ProfessionalCard key={data.id} data={data} />);
+      return professionals.map((item) => (
+        <ProfessionalCard
+          key={item._id}
+          data={item}
+          onCall={handleCall}
+          onMessage={handleMessage}
+        />
+      ));
     }
   };
 
@@ -320,38 +293,71 @@ const renderContent = () => {
       style={styles.container}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Image source={BackIcon} style={styles.backIcon} resizeMode="contain" />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Image
+            source={BackIcon}
+            style={styles.backIcon}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Crisis Support</Text>
       </View>
 
       <View style={styles.tabBar}>
-        <CommunityTabButton title="Crisis Hot-lines" isSelected={activeTab === "hotlines"} onPress={() => setActiveTab("hotlines")} />
-        <CommunityTabButton title="Professional help" isSelected={activeTab === "professional"} onPress={() => setActiveTab("professional")} />
+        <CommunityTabButton
+          title="Crisis Hot-lines"
+          isSelected={activeTab === "hotlines"}
+          onPress={() => setActiveTab("hotlines")}
+        />
+        <CommunityTabButton
+          title="Professional help"
+          isSelected={activeTab === "professional"}
+          onPress={() => setActiveTab("professional")}
+        />
       </View>
 
       {activeTab === "professional" && (
         <View style={styles.searchBar}>
-          <Image source={SearchIcon} style={styles.searchIcon} resizeMode="contain" />
-          <TextInput style={styles.searchInput} placeholder="Search by city or area..." placeholderTextColor="#A3A3A3" />
+          <Image
+            source={SearchIcon}
+            style={styles.searchIcon}
+            resizeMode="contain"
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by city or area..."
+            placeholderTextColor="#A3A3A3"
+            value={searchQuery}
+            onChangeText={(text) => setSearchQuery(text)}
+          />
         </View>
       )}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {renderContent()}
       </ScrollView>
     </LinearGradient>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
-  // --- Header ---
+  linkText: {
+    textDecorationLine: "underline",
+    color: "#8b0fa4",
+  },
   header: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 20, height: 60, marginTop: 50
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    height: 60,
+    marginTop: 50,
   },
   backButton: { padding: 5 },
   backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
@@ -364,15 +370,17 @@ const styles = StyleSheet.create({
   },
   // --- Tab Bar ---
   tabBar: {
-    flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 30, marginBottom: 20
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 30,
+    marginBottom: 10,
   },
-
   // --- Search Bar ---
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 20,
-    marginVertical: 10,
+    marginVertical: 5,
     // backgroundColor: '#F0F0F0',
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -398,22 +406,33 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   card: {
-    backgroundColor: "#fff", borderRadius: 20, paddingHorizontal: 15, paddingVertical: 15, marginBottom: 15, elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
 
   // --- Hotline Card Specific Styles ---
   cardHeader: {
-    flexDirection: "row"
+    flexDirection: "row",
   },
   phoneIcon: {
-    width: 40, height: 40, marginRight: 15,tintColor: "#7E57C2",
+    width: 40,
+    height: 40,
+    marginRight: 15,
+    tintColor: "#7E57C2",
   },
   headerText: {
     flex: 1,
   },
   cardTitle: {
     fontSize: 16,
-    // fontWeight: "bold",
     color: "#333",
     fontFamily: "Quicksand-Bold",
   },
@@ -454,9 +473,8 @@ const styles = StyleSheet.create({
     width: "45%", // Ensures columns sit side-by-side
     flexDirection: "column",
     justifyContent: "flex-start",
-        // borderWidth:1,
-        marginLeft:20,
-   
+    // borderWidth:1,
+    marginLeft: 20,
   },
   detailRow: {
     flexDirection: "row",
@@ -504,8 +522,9 @@ const styles = StyleSheet.create({
     fontFamily: "Quicksand-Regular",
   },
   expertiseContainer: {
-    flexDirection: "row",
     flexWrap: "wrap",
+    alignItems: "center",
+    flexDirection: "row",
     marginTop: 5,
   },
   expertiseLabel: {
@@ -552,29 +571,24 @@ const styles = StyleSheet.create({
     borderTopColor: "#F0F0F0",
   },
   actionIcon: {
-    width: 24,
-    height: 24,
-    tintColor: '#7E57C2',
-    // tintColor: '#835ed8ff',
-    marginLeft: 15,
+    width: 26,
+    height: 26,
+    tintColor: "#7E57C2",
+    marginLeft: 10,
   },
-  viewProfileButton: {
-    backgroundColor: "#7E57C2",
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginLeft: 15,
+    actionIcon2: {
+    width: 32,
+    height: 32,
+    tintColor: "#7E57C2",
   },
-  viewProfileText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontFamily: "Quicksand-SemiBold",
+  nameAndActionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
-  // ✅ MODIFIED STYLES
-  nameAndActionsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   nameColumn: { flex: 1, marginRight: 10 },
   topRightActions: { flexDirection: "row", alignItems: "center" },
-  actionIcon: { width: 22, height: 22, marginLeft: 10,tintColor: "#7E57C2", }, // Call/WhatsApp size and spacing
+  // actionIcon: { width: 22, height: 22, marginLeft: 10, tintColor: "#7E57C2" }, 
 });
 
 export default CrisisSupportScreen;
