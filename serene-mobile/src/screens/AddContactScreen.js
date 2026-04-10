@@ -314,6 +314,7 @@ const styles = StyleSheet.create({
   placeholderStyle: {
     fontSize: 16,
     color: "#9E9E9E",
+    fontFamily: "Quicksand-Medium",
   },
   selectedTextStyle: {
     fontSize: 16,

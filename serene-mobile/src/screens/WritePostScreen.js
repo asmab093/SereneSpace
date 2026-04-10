@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -8,29 +8,63 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Switch,
+  Switch,Alert
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { AuthContext } from "../context/AuthContext";
+import axios from "axios";
+import Toast from 'react-native-toast-message';
 
 const BackIcon = require("../assets/BackIcon.png"); 
-const AvatarIcon = require("../assets/woman.png"); // User's profile image
+// const AvatarIcon = require("../assets/woman.png"); // User's profile image
 
-const WritePostScreen = ({ navigation }) => {
+const WritePostScreen = ({ navigation,route }) => {
+  const { user, API_URL, token } = useContext(AuthContext);
+  const { groupTitle, groupId } = route.params || {};// Pass these from GroupDetail
   // 1. REMOVED: State for 'title' is no longer needed but kept for handler logic update
-  const [title, setTitle] = useState("");
+  // const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Determine if the Post button should be enabled.
   // 💡 UPDATED LOGIC: Only check if the body has content, as title is removed.
   const isPostEnabled = body.trim().length > 0;
 
-  const handlePostPress = () => {
-    if (isPostEnabled) {
-      // 💡 UPDATED LOG: Title check removed
-      console.log(`Posting: Body='${body}', Anonymous=${isAnonymous}`);
-      // In a real app: call API to submit post
+  /// ✅ Comprehensive avatar mapping
+  const getAvatarSource = (id) => {
+    const avatarMap = {
+      1: require("../assets/FlowerAvatar.png"),
+      2: require("../assets/PersonAvatar.png"),
+      3: require("../assets/flower.png"),
+      4: require("../assets/cat.png"),
+      5: require("../assets/bear.png"),
+      6: require("../assets/woman.png"),
+      7: require("../assets/PenguinAvatar.png"),
+      8: require("../assets/LadyAvatar.png"),
+      9: require("../assets/owl.png"),
+      10: require("../assets/profile.png"),
+    };
+    return avatarMap[id] || require("../assets/profile.png");
+  };
+
+  const handlePostPress = async () => {
+    setLoading(true);
+    console.log("handle Post press triggered");
+    try {
+      await axios.post(`${API_URL}/posts`, {
+        content: body,
+        group: groupId,
+        isAnonymous:isAnonymous
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      Toast.show({ type: 'success', text1: 'Posted successfully!' });
       navigation.goBack();
+    } catch (error) {
+      const serverMessage = error.response?.data?.message || "Failed to post.";
+      Alert.alert("Post Refused", serverMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,9 +99,13 @@ const WritePostScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.userInfoContainer}>
-          <Image source={AvatarIcon} style={styles.avatar} resizeMode="cover" />
-          <Text style={styles.userName}>Hani Malik</Text>
-        </View>
+          {/* {console.log("avatar id", user?.communityProfile?.avatarId)} */}
+        <Image 
+          source={isAnonymous ? require("../assets/AnonymousUser.png") : getAvatarSource(user?.communityProfile?.avatarId)} 
+          style={styles.avatar} 
+        />
+        <Text style={styles.userName}>{isAnonymous ? "Anonymous" : user?.username}</Text>
+      </View>
 
         <TextInput
           style={styles.bodyInput} // 💡 STYLE APPLIED HERE FOR BORDER

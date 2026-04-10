@@ -36,14 +36,15 @@ const SUPPORT_CARD_BASE = {
 
 // 💡 navigation is now the primary prop
 const HomeScreen = ({ navigation }) => {
-  const { user } = useContext(AuthContext);
+  const { user, handleCommunityNavigation } = useContext(AuthContext);
+
   const insets = useSafeAreaInsets();
   const MOOD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
 
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const userInitial = user?.username
-    ? user.username.charAt(0).toUpperCase()
-    : "U";
+  // const userInitial = user?.username
+  //   ? user.username.charAt(0).toUpperCase()
+  //   : "U";
 
   return (
     <View style={{ flex: 1 }}>
@@ -70,11 +71,13 @@ const HomeScreen = ({ navigation }) => {
 
               <TouchableOpacity
                 style={styles.avatarCircle}
-                onPress={() => navigation.navigate("Profile")} // ⬅️ Navigate to Profile
+                onPress={() => navigation.navigate("Profile")} //  Navigate to Profile
               >
-                <View style={styles.initialAvatarContainer}>
-                  <Text style={styles.initialAvatarText}>{userInitial}</Text>
-                </View>
+                  <View style={styles.initialAvatarContainer}>
+                    <Text style={styles.initialAvatarText}>
+                      {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                    </Text>
+                  </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -215,7 +218,7 @@ const HomeScreen = ({ navigation }) => {
 
             {/* COMMUNITY CARD */}
             <TouchableOpacity
-              onPress={() => navigation.navigate("CommunityGroups")} // ⬅️ Community Navigation
+              onPress={() => handleCommunityNavigation(navigation)} // Community Navigation
               style={styles.card}
             >
               <Text style={styles.cardHeader}>Circle Support</Text>
@@ -254,7 +257,6 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-// --- 2. COMPOSE FINAL STYLES USING BASE OBJECT ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -263,7 +265,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // --- Header Styles ---
   headerArea: {
     backgroundColor: "#F7F4FD",
   },
@@ -284,21 +285,12 @@ const styles = StyleSheet.create({
     color: "#512DA8",
     fontFamily: "Quicksand-SemiBold",
     textAlign: "center",
-    // marginLeft: -30,
   },
   avatarCircle: {
-    // width: 35,
-    // height: 35,
-    // borderRadius: 17.5,
-    // backgroundColor: "#FFFFFF",
-    // justifyContent: "center",
-    // alignItems: "center",
-    // borderWidth: 1,
-    // borderColor: "#512DA8",
-    width: 35, // Slightly larger than before for better visibility
+    width: 35, 
     height: 35,
     borderRadius: 20,
-    backgroundColor: "#7E57C2", // Use the theme purple
+    backgroundColor: "#7E57C2", 
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
@@ -309,21 +301,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
-  // ✅ New styles for the initial text in header
   initialAvatarText: {
-    fontSize: 18, // Smaller than profile page to fit header
+    fontSize: 18,
     color: "#FFFFFF",
     fontFamily: "Quicksand-Bold",
-    includeFontPadding: false, // Prevents Android-specific text padding issues
     textAlignVertical: "center",
   },
-  // avatarIcon: {
-  //   width: 30,
-  //   height: 30,
-  //   borderRadius: 15,
-  // },
 
-  // --- Footer Wrapper Styles (Fixed Position) ---
   footerWrapper: {
     position: "absolute",
     bottom: 0,
@@ -336,7 +320,6 @@ const styles = StyleSheet.create({
     height: 65,
   },
 
-  // --- Content & Card Styles ---
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 10,
@@ -372,7 +355,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  // Gradient Button Styles
   buttonWrapper: {
     width: "100%",
     marginTop: 10,
@@ -428,7 +410,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   flexItem: {
-    // Used in JSX, but not defining layout here
     flex: 1,
     marginHorizontal: 5,
   },
@@ -439,7 +420,6 @@ const styles = StyleSheet.create({
     height: 140,
   },
 
-  // Quick Chat Card Styles
   quickChatContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -492,12 +472,11 @@ const styles = StyleSheet.create({
 
   // LEFT BOX (Professional) Styles: Horizontal Layout (Matching Quick Chat)
   supportBoxLeft: {
-    ...SUPPORT_CARD_BASE, //Compose base style
+    ...SUPPORT_CARD_BASE, 
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#D8DAF4",
-    padding: 10, // Override base padding for horizontal layout
-    // REMOVED: old conflicting styles like D8DAF4 background
+    padding: 10, 
   },
   supportIconLeft: {
     width: 45,
@@ -525,7 +504,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     backgroundColor: "#D8DAF4",
     padding: 15, // Override base padding for vertical layout
-    // REMOVED: old conflicting styles like D8DAF4 background
   },
   supportIconRight: {
     width: 45,

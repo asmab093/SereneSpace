@@ -5,6 +5,9 @@ const morgan = require('morgan');
 const connectDB = require('./config/db.js');
 const authRoutes = require('./routes/authRoutes.js');
 const supportRoutes=require("./routes/supportRoutes");
+const userRoutes = require("./routes/userRoutes");
+const postRoutes = require("./routes/postRoutes");
+
 // 1. Load Environment Variables
 dotenv.config();
 
@@ -20,6 +23,8 @@ app.use(morgan('dev'));  // Logs API requests in terminal
 
 app.use('/api/auth', authRoutes); 
 app.use("/api/support", supportRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 // 4. Test Route (The "Connectivity Test" endpoint)
 app.get('/api/test', (req, res) => {

@@ -44,7 +44,7 @@ exports.registerUser = async (req, res) => {
         email: user.email,
         createdAt: user.createdAt,
         token: generateToken(user._id), // Send token back immediately
-        hasAddedContact: user.hasAddedContact, // ✅ This will be 'false' for new users
+        hasAddedContact: user.hasAddedContact,
       });
     }
   } catch (error) {
@@ -131,6 +131,8 @@ exports.loginUser = async (req, res) => {
         token: generateToken(user._id),
         createdAt: user.createdAt,
         emergencyContact: user.emergencyContact,
+        communityProfile: user.communityProfile,
+        joinedGroups: user.joinedGroups,
       });
     } else {
       res

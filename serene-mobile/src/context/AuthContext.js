@@ -1,44 +1,82 @@
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Now 'user' will hold the entire object: { _id, username, email, emergencyContact,,hasAdded.. etc. }
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  //Base URL for your API
-  // Replace '192.168.x.x' with your computer's actual IP address
+  // Base URL for your API (Android Emulator uses 10.0.2.2)
   const API_URL = "http://10.0.2.2:5000/api";
+
+  // ✅ HELPER: Check if user is a member of a group
+  // Returns true if the groupTitle exists in the user's joinedGroups array
+  const isGroupJoined = (groupTitle) => {
+    return user?.joinedGroups?.includes(groupTitle) || false;
+  };
+
+  // ✅ HELPER: Update user data locally and in AsyncStorage
+  // Use this when joining a group or updating a profile to keep UI in sync
+  const updateLocalUser = async (newData) => {
+    try {
+      const updatedUser = { ...user, ...newData };
+      setUser(updatedUser);
+      await AsyncStorage.setItem("userData", JSON.stringify(updatedUser));
+    } catch (error) {
+      console.log("Error updating local user context:", error);
+    }
+  };
 
   const login = async (userData) => {
     try {
-      // 1. Update the Variable in Memory (What Splash checks)
       setUser(userData);
       setToken(userData.token);
-
-      // 2. Update the File on Disk (What App.js checks on boot)
       await AsyncStorage.setItem("userData", JSON.stringify(userData));
-      setAuthChecked(true); // Mark as checked when logging in
-      return true; // Success
+      setAuthChecked(true);
+      return true;
     } catch (error) {
       console.log("Login Context Error:", error);
       return false;
     }
   };
 
-  // Updated Logout helper that clears Disk and global state
   const logout = async () => {
     setUser(null);
     setToken(null);
     await AsyncStorage.removeItem("userData");
-    //Keep authChecked as true so the app knows it has finished the "check"
-    // and is simply in an unauthenticated state
     setAuthChecked(true);
   };
+
+  const handleCommunityNavigation = (navigation) => {
+  // iMPROVED LOGIC: Check if the profile exists AND the completion flag is true
+  const isProfileComplete = user?.communityProfile?.hasCompletedProfile === true;
+
+  if (isProfileComplete) {
+    // Already has a profile? Go to the groups
+    navigation.navigate("CommunityGroups");
+  } else {
+    // New user? Go to profile creation
+    navigation.navigate("CommunityProfileCreation");
+  }
+};
+
+//NEW: Keep AsyncStorage in sync whenever the user object changes
+useEffect(() => {
+  const syncUserToDisk = async () => {
+    if (user) {
+      try {
+        await AsyncStorage.setItem("userData", JSON.stringify({ ...user, token }));
+        console.log("💾 User data synced to disk (Profile/Groups updated)");
+      } catch (e) {
+        console.error("Failed to sync user to disk", e);
+      }
+    }
+  };
+
+  syncUserToDisk();
+}, [user]); // Runs every time 'user' state is updated
 
   return (
     <AuthContext.Provider
@@ -51,15 +89,13 @@ export const AuthProvider = ({ children }) => {
         authChecked,
         setAuthChecked,
         API_URL,
-        logout, // Pass logout so any screen can use it
+        handleCommunityNavigation,
+        isGroupJoined,     
+        updateLocalUser,  
+        logout,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-
-//This is the Global Brain. It stores the
-// "Login State" (the Token and User info) so that once the user
-// signs up, the whole app knows they are logged in without
-// asking again.

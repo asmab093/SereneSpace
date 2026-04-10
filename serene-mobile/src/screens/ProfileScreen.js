@@ -16,7 +16,7 @@ import { useIsFocused } from "@react-navigation/native"; // ✅ Add this import
 
 const BackIcon = require("../assets/BackIcon.png");
 const BackgroundLeaves = require("../assets/ProfileBackgroundLeaves.png");
-const BioIcon = require("../assets/BioIcon.png");
+const BioIcon = require("../assets/AnonymousUser.png");
 const ContactEditIcon = require("../assets/ContactEditIcon.png");
 const SecurityIcon = require("../assets/AccountsSecurityIcon.png");
 const RightArrow = require("../assets/RightArrowIcon.png");
@@ -26,6 +26,25 @@ const LogOutIcon = require("../assets/LogoutIcon.png");
 const ProfileScreen = ({ navigation }) => {
   const { user, logout, setAuthChecked } = useContext(AuthContext);
   const isFocused = useIsFocused(); // ✅ Detects when user lands on this screen
+
+  // 1. Map IDs to Assets (Make sure this matches CommunityProfileCreation.js)
+  const avatarMap = {
+    1: require("../assets/FlowerAvatar.png"),
+      2: require("../assets/PersonAvatar.png"),
+      3: require("../assets/flower.png"),
+      4: require("../assets/cat.png"),
+      5: require("../assets/bear.png"),
+      6: require("../assets/woman.png"),
+      7: require("../assets/PenguinAvatar.png"),
+      8: require("../assets/LadyAvatar.png"),
+      9: require("../assets/owl.png"),
+      10: require("../assets/profile.png"),
+  };
+  // 2. Get the current avatar or fallback to a default
+  const communityAvatar = user?.communityProfile?.avatarId 
+    ? avatarMap[user.communityProfile.avatarId] 
+    : BioIcon; // Default icon if none set
+  const communityBio = user?.communityProfile?.bio || "No bio added yet.";
 
   // We use optional chaining (?.) and fallback to "U" (for User) if username is null
   const userInitial = user?.username
@@ -132,11 +151,11 @@ const ProfileScreen = ({ navigation }) => {
 
           <View style={styles.menuSection}>
             <ProfileMenuItem
-              icon={BioIcon}
+              icon={communityAvatar} // Displays selected avatar image
               text="Bio & Community Avatar"
-              subtext="I am 18 y/o and suffering from seasonal depression. Here on this app to explore about people going through similar issues."
+              subtext={communityBio} // Displays saved bio
               actionText="Edit"
-              onPress={() => navigation.navigate("CommunityProfile")}
+              onPress={() => navigation.navigate("CommunityProfileCreation", { isEditing: true })}
             />
 
             <ProfileMenuItem
@@ -332,10 +351,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: 90,
     width: "60%",
-    // borderWidth:1,
-    // marginBottom: 80,
-    // position: "absolute",
-    // top: 700,
   },
   logoutIcon: {
     width: 20,

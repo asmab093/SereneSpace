@@ -1,17 +1,14 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  TextInput,
-  Alert,
+import React, { useState, useContext } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, 
+TextInput, Alert, ActivityIndicator
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import Toast from 'react-native-toast-message';
 import CustomButton from "../components/CustomButton";
 import AvatarSelector from "../components/AvatarSelector";
+import { AuthContext } from "../context/AuthContext";
+import axios from "axios"; 
+import { useRoute } from "@react-navigation/native"; 
 
 const BackIcon = require("../assets/BackIcon.png");
 const FoxAvatar = require("../assets/flower.png");
@@ -22,36 +19,86 @@ const WomanAvatar = require("../assets/woman.png");
 const SnowflakeAvatar = require("../assets/bear.png");
 const DogAvatar = require("../assets/profile.png");
 const LeafAvatar = require("../assets/cat.png");
+const LadyAvatar = require("../assets/LadyAvatar.png");
+const PenguinAvatar = require("../assets/PenguinAvatar.png");
 
 const avatarOptions = [
-  { id: 1, source: FoxAvatar },
+  { id: 1, source: FlowerAvatar},
   { id: 2, source: PersonAvatar },
-  { id: 3, source: FlowerAvatar },
+  { id: 3, source: FoxAvatar },
   { id: 4, source: LeafAvatar },
   { id: 5, source: SnowflakeAvatar },
   { id: 6, source: WomanAvatar },
-  { id: 7, source: DogAvatar },
-  { id: 8, source: LeafAvatar },
+  { id: 7, source: PenguinAvatar },
+  { id: 8, source: LadyAvatar },
   { id: 9, source: BearAvatar },
   { id: 10, source: DogAvatar },
 ];
 
-const CommunityProfileCreation = ({ navigation }) => { // ⬅️ Use navigation prop
-  const [bioText, setBioText] = useState("");
-  const [selectedAvatarId, setSelectedAvatarId] = useState(null);
+const CommunityProfileCreation = ({ navigation }) => {
+  const { user,setUser, API_URL, token } = useContext(AuthContext);
+  const route = useRoute();
+  const [bioText, setBioText] = useState(user?.communityProfile?.bio || "");
+  const [selectedAvatarId, setSelectedAvatarId] = useState(user?.communityProfile?.avatarId || null);
+  const [isSaving, setIsSaving] = useState(false);
+  const isEditing = route.params?.isEditing || false; // Check if we came from Profile
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!bioText.trim() || !selectedAvatarId) {
       Alert.alert(
         "Incomplete Profile",
-        "Please enter your bio and select an avatar."
+        "Please enter your bio and select an avatar.",
       );
       return;
     }
-    console.log(`Saving Profile: Bio: ${bioText}, Avatar ID: ${selectedAvatarId}`);
-    
-    // Navigate to the groups selection after saving
-    navigation.navigate("CommunityGroups"); 
+    setIsSaving(true);
+    try {
+      const response = await axios.put(
+        `${API_URL}/users/community-profile`,
+        {
+          bio: bioText,
+          avatarId: selectedAvatarId,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        // DYNAMIC TOAST MESSAGE
+        Toast.show({
+          type: 'success',
+          text1: isEditing ? 'Success! ✨' : 'Success! 🎉',
+          text2: isEditing 
+            ? 'Your community profile has been updated.' 
+            : 'Your community profile has been created.',
+          position: 'bottom',
+          visibilityTime: 3000,
+        });
+        // Update local context with the new user object from MongoDB
+        setUser(response.data.data);
+        setTimeout(() => {
+          // 2. CONDITIONAL NAVIGATION
+          if (isEditing) {
+            // If we came from Profile, go back to Profile
+            navigation.goBack();
+          } else {
+            // If first time creation, go to Groups
+            navigation.navigate("CommunityGroups");
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: 'Could not save your profile. Please try again.',
+        position: 'bottom',
+      });
+      console.error("Error saving profile:", error);
+    }finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -62,8 +109,11 @@ const CommunityProfileCreation = ({ navigation }) => { // ⬅️ Use navigation 
       style={styles.container}
     >
       <View style={styles.header}>
-        {/* ✅ FIXED: Use navigation.goBack() */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        {/*  FIXED: Use navigation.goBack() */}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Image
             source={BackIcon}
             style={styles.backIcon}
@@ -74,7 +124,7 @@ const CommunityProfileCreation = ({ navigation }) => { // ⬅️ Use navigation 
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>
-          Let's create your profile and get started.
+          {isEditing ? "Update your community presence." : "Let's create your profile and get started."}
         </Text>
 
         <View style={styles.section}>
@@ -118,21 +168,15 @@ const CommunityProfileCreation = ({ navigation }) => { // ⬅️ Use navigation 
 
         <View style={styles.buttonContainer}>
           <CustomButton
-            title="SAVE"
+            title={isSaving ? "SAVING..." : "SAVE"}
             onPress={handleSave}
             style={styles.saveButton}
           />
-          {/* ✅ FIXED: Use navigation.goBack() to return to Profile */}
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.skipText}>I'LL DO THIS LATER</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </LinearGradient>
   );
 };
-
-// ... keep your styles as they were
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },

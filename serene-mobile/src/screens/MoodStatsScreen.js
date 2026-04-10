@@ -182,8 +182,7 @@ const styles = StyleSheet.create({
   backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
   headerTitle: {
     fontSize: 20,
-    // fontWeight: "bold",
-    color: "#333",
+    color: "#512DA8",
     fontFamily: "Quicksand-Bold",
     marginLeft: 15,
   },

@@ -1,12 +1,13 @@
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-const CustomButton = ({ title, onPress }) => {
+const CustomButton = ({ title, onPress ,disabled,style}) => {
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      style={styles.buttonWrapper}
+      style={[styles.buttonWrapper, style]}
+      disabled={disabled}
     >
       <LinearGradient
         colors={["#7B61FF", "#78469A"]} // Deep purple gradient

@@ -1,13 +1,22 @@
-import React, { useState } from "react";
-import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,} from "react-native";
+import React, { useState, useContext } from "react";
+import axios from "axios";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import CommunityTabButton from "../components/CommunityTabButton";
 import CustomButton from "../components/CustomButton";
 import CustomCheckbox from "../components/CustomCheckBox"; // ⬅️ ASSUMED: This component is created
 import CommunityInfoPopup from "../components/CommunityInfoPopup";
 import JoinSuccessPopup from "../components/JoinSuccessPopup";
+import { AuthContext } from "../context/AuthContext";
 
-// NOTE: Ensure these PNG assets exist in your src/assets/ folder:
 const BackIcon = require("../assets/BackIcon.png");
 const InfoIcon = require("../assets/InfoIcon.png");
 const SearchIcon = require("../assets/SearchIcon.png");
@@ -19,7 +28,7 @@ const AdhdIcon = require("../assets/AdhdIcon.png");
 const SelfEsteemIcon = require("../assets/SelfEsteemIcon.png");
 const MindfulnessIcon = require("../assets/MindfulnessIcon.png");
 
-// --- Data ---
+// --- Data for Groups---
 const GROUPS_DATA = [
   {
     id: "anxiety",
@@ -57,12 +66,16 @@ const GROUPS_DATA = [
 ];
 
 const CommunityGroupSelectionScreen = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState("browse"); // 'browse' or 'circles'
-  const [selectedGroups, setSelectedGroups] = useState({});
+  const { user, setUser, API_URL, token } = useContext(AuthContext);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("browse"); // 'browse' as default
+  const [selectedGroups, setSelectedGroups] = useState({});  //If you select a group with ID 123, the state becomes { "123": true }.
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isSuccessPopupVisible, setIsSuccessPopupVisible] = useState(false);
 
-  // Toggle Checkbox state
+  // function updates the selectedGroups state object.
+  //User taps Group "Stress" (ID: 2): State becomes { "depression": true, "anxiety": true }
+  //User taps Group "Anxiety" again: State becomes { "depression": false, "anxiety": true }
   const toggleGroup = (id) => {
     setSelectedGroups((prev) => ({
       ...prev,
@@ -70,35 +83,90 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
     }));
   };
 
+  //selectedCount>a derived variable to count how many true values are in selectedGroups.
   const selectedCount = Object.values(selectedGroups).filter((v) => v).length;
+  // console.log(selectedCount); 
   const isJoinEnabled = selectedCount > 0;
 
-  const handleJoinNow = () => {
-    if (isJoinEnabled) {
-      console.log(`Joining ${selectedCount} groups.`); // In a real app: call API here // 💡 NEW LOGIC: Show success popup
-      setIsSuccessPopupVisible(true);
+  const handleJoinNow = async () => {
+    const newGroupsList = Object.keys(selectedGroups).filter(
+      (id) => selectedGroups[id],
+    );//It converts the selectedGroups object into a simple array of IDs (e.g., ["depression", "anxiety"]).
+    const combinedGroups = [...(user?.joinedGroups || []), ...newGroupsList];
+    //combinedGroups takes the groups the user already had in user.joinedGroups and adds the new ones
+    //combinedGroups ["adhd", "depression", "anxiety", "self_esteem"]
+    try {
+      // 1. Save to Backend (MongoDB)
+      const response = await axios.put(
+        `${API_URL}/users/joined-groups`,
+        { groups: combinedGroups },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (response.data.success) {
+        // 2. Update Context locally
+        setUser(response.data.data);
+        setSelectedGroups({});
+        setIsSuccessPopupVisible(true);//shows the popup
+      }
+    } catch (error) {
+      console.error("Error joining groups:", error);
+      Alert.alert(
+        "Error",
+        "Could not join groups. Please check your connection.",
+      );
     }
   };
 
-  // 💡 NEW LOGIC: Handler for when the user dismisses the popup
+  //Handler for when the user dismisses the popup
   const handlePopupClose = () => {
     setIsSuccessPopupVisible(false);
-    navigation.navigate("Home");
+    setActiveTab("circles");
   };
 
-  // --- Group Card Component (Complete Replacement) ---
+  // Inside CommunityGroupSelectionScreen component
+const handleLeaveGroup = async (groupId) => {
+  // 1. Create the new list by filtering OUT the group being left
+  const updatedGroups = user.joinedGroups.filter((id) => id !== groupId);
+  try {
+    const response = await axios.put(
+      `${API_URL}/users/joined-groups`,
+      { groups: updatedGroups },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (response.data.success) {
+      // 3. ✅ Update local Context state
+      // This will automatically move the group back to "Browse" 
+      // because our renderContent filters by user.joinedGroups
+      setUser(response.data.data);
+      console.log("Successfully left the group");
+    }
+  } catch (error) {
+    console.error("Error leaving group:", error);
+    Alert.alert("Error", "Could not leave the group. Please try again.");
+  }
+};
+
+  // --- Group Card Component 
   const GroupCard = ({ data, isChecked, onToggle }) => {
-    // NOTE: 'activeTab' is available because GroupCard is defined inside CommunityGroupSelectionScreen
+    // 'activeTab' is available because GroupCard is defined inside CommunityGroupSelectionScreen
     const isCirclesTab = activeTab === "circles";
-
-    // 1. Conditional Wrapper: TouchableOpacity for Circles tab, View otherwise
+    // Conditional Wrapper: TouchableOpacity for Circles tab, View otherwise
     const CardWrapper = isCirclesTab ? TouchableOpacity : View;
-
     return (
       <CardWrapper
         style={styles.groupCard}
-        // 3. Apply click logic only if it's the Circles tab
-        onPress={isCirclesTab ? () => navigation.navigate("GroupDetail", { groupTitle: data.title }) : undefined}
+        //Apply click logic only if it's the Circles tab
+        onPress={
+          isCirclesTab
+            ? () =>
+                navigation.navigate("GroupDetail", {
+                  groupTitle: data.title,
+                  groupId: data.id,
+                  isMember: true,
+                })
+            : undefined
+        }
         activeOpacity={isCirclesTab ? 0.8 : 1}
       >
         <View style={styles.groupInfo}>
@@ -118,7 +186,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
             // In 'Your Circles' tab, show only the Leave button
             <TouchableOpacity
               style={styles.leaveButton}
-              onPress={() => console.log(`Leaving ${data.title}`)}
+              onPress={() => handleLeaveGroup(data.id)} //data has whole group
             >
               <Text style={styles.leaveButtonText}>Leave</Text>
             </TouchableOpacity>
@@ -127,7 +195,14 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
             <View style={styles.verticalActions}>
               <TouchableOpacity
                 style={styles.visitButton}
-                onPress={() => console.log(`Visiting ${data.title}`)}
+                // NAVIGATION FOR BROWSE: isMember is FALSE
+                onPress={() =>
+                  navigation.navigate("GroupDetail", {
+                    groupTitle: data.title,
+                    groupId: data.id,
+                    isMember: false,
+                  })
+                }
               >
                 <Text style={styles.visitButtonText}>visit</Text>
               </TouchableOpacity>
@@ -143,20 +218,45 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
     );
   };
 
-  // --- Content Rendering ---
   const renderContent = () => {
-    // Data for "Your Circles" is simplified dummy data
-    const displayData =
-      activeTab === "browse" ? GROUPS_DATA : GROUPS_DATA.slice(0, 3);
+    if (activeTab === "browse") {
+      //Filter out to find groups not joined by user.
+      let filteredGroups = GROUPS_DATA.filter(
+        (group) => !user?.joinedGroups?.includes(group.id),
+      );
 
-    return displayData.map((group) => (
-      <GroupCard
-        key={group.id}
-        data={group}
-        isChecked={!!selectedGroups[group.id]}
-        onToggle={toggleGroup}
-      />
-    ));
+      //Apply Search Logic. now filteredGroups contain those groups that map keyword against search
+      if (searchQuery.trim().length > 0) {
+        filteredGroups = filteredGroups.filter(
+          (group) =>
+            group.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            group.description.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+      }
+
+      return filteredGroups.map((group) => (
+        <GroupCard
+          key={group.id}
+          data={group}
+          isChecked={!!selectedGroups[group.id]}
+          onToggle={toggleGroup}
+        />
+      ));
+    } else {
+      // Show only joined groups in "Your Circles"
+      const myGroups = GROUPS_DATA.filter((group) =>
+        user?.joinedGroups?.includes(group.id),
+      );
+
+      return myGroups.map((group) => (
+        <GroupCard
+          key={group.id}
+          data={group}
+          isChecked={false}
+          onToggle={() => {}}
+        />
+      ));
+    }
   };
 
   return (
@@ -167,7 +267,10 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
       style={styles.container}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Image
             source={BackIcon}
             style={styles.backIcon}
@@ -176,16 +279,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Community</Text>
         <View style={styles.headerRightIcons}>
-          <TouchableOpacity
-            onPress={() => console.log("Search")}
-            style={styles.headerIconWrapper}
-          >
-            <Image
-              source={SearchIcon}
-              style={styles.searchIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
+          
           <TouchableOpacity
             onPress={() => setIsPopupVisible(true)}
             style={styles.headerIconWrapper}
@@ -206,11 +300,27 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
           onPress={() => setActiveTab("browse")}
         />
         <CommunityTabButton
-          title="Your Circles"
+          title="My Circles"
           isSelected={activeTab === "circles"}
           onPress={() => setActiveTab("circles")}
         />
       </View>
+      {activeTab === "browse" && (
+        <View style={styles.searchBar}>
+          <Image
+            source={SearchIcon}
+            style={styles.searchIcon}
+            resizeMode="contain"
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search for a group using keywords.."
+            placeholderTextColor="#A3A3A3"
+            value={searchQuery}
+            onChangeText={(text) => setSearchQuery(text)} // ✅ Updates the state
+          />
+        </View>
+      )}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -248,7 +358,6 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
 
-  // --- Header ---
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -257,6 +366,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: "#FFFFFF",
     paddingBottom: 10,
+    // borderWidth:1,
   },
   backButton: { padding: 5 },
   backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
@@ -277,7 +387,7 @@ const styles = StyleSheet.create({
     padding: 5,
     marginLeft: 10,
   },
-  searchIcon: { width: 20, height: 20, tintColor: "#512DA8" },
+  // searchIcon: { width: 20, height: 20, tintColor: "#512DA8" },
   infoIcon: { width: 20, height: 20, tintColor: "#512DA8" },
 
   // --- Tabs ---
@@ -287,7 +397,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#dadbf3ff",
   },
-
   // --- Scroll Content & Cards ---
   scrollContent: {
     paddingHorizontal: 20,
@@ -385,7 +494,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
-    height:'13%',
+    height: "11.5%",
     padding: 10,
     backgroundColor: "#FFFFFF",
     alignItems: "center",
@@ -393,6 +502,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 10,
+    // borderWidth:1,
   },
   joinButton: {
     width: 280, // Fixed width for the custom button
@@ -400,6 +510,33 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 20,
+    marginTop: 2,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 45,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  searchIcon: {
+    width: 18,
+    height: 18,
+    marginRight: 10,
+    tintColor: "#A3A3A3",
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Quicksand-Medium",
+    color: "#333",
   },
 });
 

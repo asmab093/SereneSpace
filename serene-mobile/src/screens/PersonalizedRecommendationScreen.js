@@ -64,7 +64,6 @@ const PersonalizedRecommendationsScreen = ({ navigation }) => {
       style={styles.container}
     >
       <View style={styles.header}>
-        {/* ✅ FIXED: Use navigation.goBack() */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -191,10 +190,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    // justifyContent: "space-between",
     paddingTop: 40,
     paddingHorizontal: 15,
     backgroundColor: "#FFFFFF",
     paddingBottom: 10,
+    // borderWidth:1
   },
   backButton: { padding: 5, paddingLeft: 0, paddingRight: 0 },
   backIcon: { width: 30, height: 30, tintColor: "#512DA8" },

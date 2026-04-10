@@ -1,84 +1,141 @@
-import React, { useState } from "react";
-import {View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal,} from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Modal,
+  Alert,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import PostCard from "../components/PostCard"; // ⬅️ NEW IMPORT
+import PostCard from "../components/PostCard";
+import { AuthContext } from "../context/AuthContext";
+import { useContext } from "react";
+import axios from "axios"; //
+import ReplyModal from "../components/ReplyModal"; //
 
-// NOTE: Ensure these PNG assets exist in your src/assets/ folder:
 const BackIcon = require("../assets/BackIcon.png");
-const WritePostIcon = require("../assets/WritePostIcon.png"); // Icon for writing a new post
+const WritePostIcon = require("../assets/WritePostIcon.png");
 
-// Placeholder Avatars (Reusing from ProfileCreation)
-const FoxAvatar = require("../assets/alpine.png");
-const PersonAvatar = require("../assets/owl.png");
-const FlowerAvatar = require("../assets/FlowerAvatar.png");
-const DogAvatar = require("../assets/bear.png");
-
-// --- Dummy Data ---
-const DUMMY_POSTS = [
-  {
-    id: 1,
-    user: {
-      name: "AnonUser123",
-      avatar: FoxAvatar,
-      bio: "19 y/o student dealing with exam anxiety. Just trying to breathe.",
-    },
-    content:
-      "It's been a tough week. Just felt a sudden wave of panic hit me during a lecture today. Does anyone have quick grounding techniques that help immediately?",
-    time: "5 mins ago",
-    likes: 15,
-    replies: 8,
-  },
-  {
-    id: 2,
-    user: {
-      name: "SereneFriend",
-      avatar: PersonAvatar,
-      bio: "A mom of two finding my calm through daily gratitude and support groups.",
-    },
-    content:
-      "Remember that feeling anxious doesn't make you weak. It means there's something you care deeply about. Be kind to yourselves today. Sending strength! 💪",
-    time: "2 hours ago",
-    likes: 45,
-    replies: 12,
-  },
-  {
-    id: 3,
-    user: {
-      name: "Ahmed123",
-      avatar: FlowerAvatar,
-      bio: "19 y/o student dealing with exam anxiety. Just trying to breathe.",
-    },
-    content:
-      "I freeze up when I’m around people — my mind just goes blank. I really want to feel more natural in conversations. Any tips?",
-    time: "2 mins ago",
-    likes: 15,
-    replies: 8,
-  },
-  {
-    id: 4,
-    user: {
-      name: "SereneFriend",
-      avatar: DogAvatar,
-      bio: "A mom of two finding my calm through daily gratitude and support groups.",
-    },
-    content:
-      "I scroll through social media and instantly feel like I’m behind in life. Everyone looks so confident and happy — I just feel stuck and not enough.",
-    time: "8 hours ago",
-    likes: 45,
-    replies: 12,
-  },
-];
-
-const GroupDetailScreen = ({ navigation,route }) => {
+const GroupDetailScreen = ({ navigation, route }) => {
+  const { user, API_URL, token } = useContext(AuthContext);
+  const [posts, setPosts] = useState([]);
+  // const isMember = isGroupJoined(groupTitle);
   const [bioPopupContent, setBioPopupContent] = useState(null); // Holds bio text if popup is visible
+  // Extract groupId along with groupTitle and isMember
+  const { groupTitle, isMember, groupId } = route.params || {
+    groupTitle: "Community Group",
+    isMember: false,
+    groupId: "",
+  };
+  const [selectedPostForReply, setSelectedPostForReply] = useState(null);
+  const [isReplyModalVisible, setIsReplyModalVisible] = useState(false);
+  const [isSendingReply, setIsSendingReply] = useState(false);
 
-  // ✅ EXTRACTION: Get the groupTitle passed from the previous screen
-  // If for some reason it's missing, we provide a fallback title
-  const { groupTitle } = route.params || { groupTitle: "Community Group" };
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [groupId]), //eg: grpId="depression"
+  );
 
+  const handleDeletePost = async (postId) => {
+    try {
+      await axios.delete(`${API_URL}/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPosts(posts.filter((p) => p._id !== postId)); // Remove from UI
+    } catch (error) {
+      Alert.alert("Error", "Could not delete post.");
+    }
+  };
+
+  const handleDeleteReply = async (postId, replyId) => {
+    try {
+      await axios.delete(`${API_URL}/posts/replies/${replyId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Update Modal UI
+      setSelectedPostForReply((prev) => ({
+        ...prev,
+        replies: prev.replies.filter((r) => r._id !== replyId),
+      }));
+      fetchPosts(); // Update main count
+    } catch (error) {
+      Alert.alert("Error", "Could not delete reply.");
+    }
+  };
+
+  // Function to open modal
+  const handleOpenReplies = (post) => {
+    setSelectedPostForReply(post);
+    setIsReplyModalVisible(true);
+  };
+
+  // Corrected handleSendReply function
+  const handleSendReply = async (postId, content) => {
+    setIsSendingReply(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}/posts/${postId}/replies`,
+        { content },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (response.data.success) {
+        const newReply = response.data.data;
+        setSelectedPostForReply((prevPost) => ({
+          ...prevPost,
+          replies: [...(prevPost.replies || []), newReply],
+        }));
+        fetchPosts();
+      }
+    } catch (error) {
+      // 1. Log the full error to your terminal so we can see the hidden details
+      console.log(
+        "AXIOS ERROR OBJECT:",
+        JSON.stringify(error.response?.data, null, 2),
+      );
+
+      // 2. Extract the message correctly
+      // We look for error.response.data.message (which matches your res.status(400).json)
+      const serverMessage =
+        error.response?.data?.message || "Something went wrong";
+
+      // 3. Show the Alert
+      Alert.alert("Action Blocked", serverMessage);
+    } finally {
+      setIsSendingReply(false);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/posts/${groupId}`);
+      setPosts(response.data.data);
+    } catch (error) {
+      console.log("error in fetching posts", error);
+    }
+  };
   // Handler to show the bio popup when an avatar is pressed
   const handleShowBio = (bioText) => {
     setBioPopupContent(bioText);
+  };
+
+  // Handle trying to write a post
+  const handleWritePost = () => {
+    if (isMember) {
+      // Pass the groupTitle and groupId to the WritePost screen
+      navigation.navigate("WritePost", {
+        groupTitle: groupTitle,
+        groupId: groupId,
+      });
+    } else {
+      Alert.alert("Join Group", "You must join this group to create a post.");
+    }
   };
 
   // Handler to hide the bio popup
@@ -114,9 +171,11 @@ const GroupDetailScreen = ({ navigation,route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Image
             source={BackIcon}
             style={styles.backIcon}
@@ -129,8 +188,8 @@ const GroupDetailScreen = ({ navigation,route }) => {
       </View>
 
       <TouchableOpacity
-        style={styles.writePostButton}
-        onPress={() => navigation.navigate("WritePost")}
+        style={[styles.writePostButton, !isMember && { opacity: 0.5 }]}
+        onPress={handleWritePost}
       >
         <Image
           source={WritePostIcon}
@@ -143,11 +202,33 @@ const GroupDetailScreen = ({ navigation,route }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {DUMMY_POSTS.map((post) => (
-          <PostCard key={post.id} post={post} onShowBio={handleShowBio} />
-        ))}
-        <View style={{ height: 50  }} />
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <PostCard
+              key={post._id} // MongoDB uses _id
+              post={post}
+              onShowBio={handleShowBio}
+              isInteractionDisabled={!isMember}
+              onDeletePost={handleDeletePost}
+              onReplyPress={() => handleOpenReplies(post)}
+            />
+          ))
+        ) : (
+          <Text style={styles.noPostsText}>
+            No posts yet. Be the first to share!
+          </Text>
+        )}
+        <View style={{ height: 50 }} />
       </ScrollView>
+      <ReplyModal
+        currentUserId={user?._id} // ✅ Pass user ID
+        onDeleteReply={handleDeleteReply} // ✅ Pass function
+        isVisible={isReplyModalVisible}
+        onClose={() => setIsReplyModalVisible(false)}
+        post={selectedPostForReply}
+        onSendReply={handleSendReply}
+        isSending={isSendingReply}
+      />
 
       <BioPopup />
     </LinearGradient>

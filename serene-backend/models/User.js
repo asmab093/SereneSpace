@@ -33,6 +33,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  communityProfile: {
+    bio: { type: String, default: "" },
+    avatarId: { type: Number, default: null },
+    hasCompletedProfile: { type: Boolean, default: false }
+  },
+  joinedGroups: [{ type: String }] // Array of group IDs like ['anxiety', 'adhd']
 });
 
 // if you update a user's username but keep the same password, you don't

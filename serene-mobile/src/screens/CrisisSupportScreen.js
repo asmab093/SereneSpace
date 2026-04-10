@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
-import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,
-  TextInput, ActivityIndicator, Linking,} from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Linking,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import CommunityTabButton from "../components/CommunityTabButton"; // Reused for tabs
 import axios from "axios";
@@ -229,7 +238,7 @@ const CrisisSupportScreen = ({ navigation, route }) => {
               >
                 <Image
                   source={WhatsappIcon}
-                  style={[styles.actionIcon,styles.actionIcon2]}
+                  style={[styles.actionIcon, styles.actionIcon2]}
                   resizeMode="contain"
                 />
               </TouchableOpacity>
@@ -355,9 +364,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    height: 60,
-    marginTop: 50,
+    paddingTop: 40,
+    paddingHorizontal: 15,
+    // height: 60,
+    // marginTop: 20,
+    //  backgroundColor: "#FFFFFF",
+    paddingBottom: 5,
+    // marginBottom:5,
+    // borderWidth:1,
   },
   backButton: { padding: 5 },
   backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
@@ -373,14 +387,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 30,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  // --- Search Bar ---
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 20,
-    marginVertical: 5,
+    marginVertical: 2,
     // backgroundColor: '#F0F0F0',
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -576,7 +589,7 @@ const styles = StyleSheet.create({
     tintColor: "#7E57C2",
     marginLeft: 10,
   },
-    actionIcon2: {
+  actionIcon2: {
     width: 32,
     height: 32,
     tintColor: "#7E57C2",
@@ -588,7 +601,7 @@ const styles = StyleSheet.create({
   },
   nameColumn: { flex: 1, marginRight: 10 },
   topRightActions: { flexDirection: "row", alignItems: "center" },
-  // actionIcon: { width: 22, height: 22, marginLeft: 10, tintColor: "#7E57C2" }, 
+  // actionIcon: { width: 22, height: 22, marginLeft: 10, tintColor: "#7E57C2" },
 });
 
 export default CrisisSupportScreen;
