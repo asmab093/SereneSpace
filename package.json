@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "react-native-gifted-charts": "^1.4.76",
+    "react-native-svg": "^15.15.4"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "^20.1.3"
+  }
+}

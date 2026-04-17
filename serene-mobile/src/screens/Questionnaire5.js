@@ -1,4 +1,4 @@
-// Depression Dimension
+// Self-Esteem Dimension
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, ScrollView, Alert, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -8,14 +8,15 @@ import QuestionnaireNavButton from "../components/QuestionnaireNavButton";
 const CheckMoodIcon = require("../assets/CheckMoodIcon.png");
 const screenWidth = Dimensions.get('window').width;
 
-const Questionnaire3 = ({ navigation, route }) => {
-  const { q1, q2 } = route.params;
+const Questionnaire5 = ({ navigation, route }) => {
+  // Receiving q1 through q4 from the previous screen
+  const { q1, q2, q3, q4 } = route.params;
   const [selectedAnswer, setSelectedAnswer] = useState(null);
 
   const handleNext = () => {
     if (selectedAnswer !== null) {
-      // Passing existing scores + new q3 score
-      navigation.navigate("Questionnaire4", { q1, q2, q3: selectedAnswer });
+      // Passing all 5 scores forward to the Social/Connection screen
+      navigation.navigate("Questionnaire6", { q1, q2, q3, q4, q5: selectedAnswer });
     } else {
       Alert.alert("Selection Required", "Please select an option.");
     }
@@ -26,9 +27,9 @@ const Questionnaire3 = ({ navigation, route }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.progressHeader}>
-          {/* Progress 2/6 ≈ 0.33 */}
+          {/* Progress 4/6 ≈ 0.66 */}
           <Progress.Bar 
-            progress={0.33} 
+            progress={0.66} 
             width={screenWidth * 0.8} 
             color="#7E57C2" 
             unfilledColor="rgba(255, 255, 255, 0.3)" 
@@ -43,7 +44,7 @@ const Questionnaire3 = ({ navigation, route }) => {
         <Text style={styles.screenTitle}>Check your Mood</Text>
         
         <View style={styles.questionCard}>
-          <Text style={styles.questionText}>Q3. I felt positive and hopeful about my day.</Text>
+          <Text style={styles.questionText}>Q5. I felt good about myself and my accomplishments today.</Text>
           <View style={styles.optionsContainer}>
              {[-2, -1, 0, 1, 2].map((val) => (
                <TouchableOpacity 
@@ -120,4 +121,4 @@ const styles = StyleSheet.create({
   loaderContainer: { width: 100, alignItems: "center" } // Only used in Q7, but harmless to have in all
 });
 
-export default Questionnaire3;
+export default Questionnaire5;

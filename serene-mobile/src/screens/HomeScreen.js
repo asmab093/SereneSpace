@@ -1,3 +1,7 @@
+import { Alert } from "react-native";
+import axios from 'axios'; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from '../api/config';
 import React, { useState, useContext } from "react";
 import CustomDrawer from "../components/CustomDrawer";
 import {
@@ -7,6 +11,7 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeFooter from "../components/HomeFooter";
@@ -17,8 +22,8 @@ import { AuthContext } from "../context/AuthContext";
 const MenuIcon = require("../assets/HamburgerIcon.png");
 // const AvatarIcon = require("../assets/ProfileAvatar.png");
 const MoodGraph = require("../assets/MoodTrends.png");
-const QuickChatIcon = require("../assets/QuickChatIcon.png");
-const DailyDoseIcon = require("../assets/OpenBookIcon.png");
+const QuickChatIcon = require("../assets/QuickChatIcon1.png");
+const DailyDoseIcon = require("../assets/OpenBookIcon4.png");
 const ProfessionalIcon = require("../assets/ProfessionalIcon.png");
 const HotlineIcon = require("../assets/HotlineIcon.png");
 const CircleSupportArt = require("../assets/CircleSupportArtIcon.png");
@@ -36,16 +41,33 @@ const SUPPORT_CARD_BASE = {
 
 // 💡 navigation is now the primary prop
 const HomeScreen = ({ navigation }) => {
-  const { user, handleCommunityNavigation } = useContext(AuthContext);
-
+  const { user, token, handleCommunityNavigation } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
+  const [alertVisible, setAlertVisible] = useState(false);
   const MOOD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
-
   const [drawerVisible, setDrawerVisible] = useState(false);
-  // const userInitial = user?.username
-  //   ? user.username.charAt(0).toUpperCase()
-  //   : "U";
+const handleMoodCheckIn = async () => {
+  try {
+    const res = await axios.get(`${BASE_URL}/api/mood/check-today`, {
+      headers: {
+        Authorization: `Bearer ${token}`, 
+      },
+    });
+    
+    // ✅ ACTIVE LOGIC: Only navigate if the backend says we can
+    if (res.data.canLog) {
+      navigation.navigate("Questionnaire1");
+    } else {
+      // ✅ Show your custom centered alert if already logged today
+      setAlertVisible(true);
+    }
 
+  } catch (err) {
+    console.error("Check log error:", err);
+    // On error, we navigate as a fallback so the app doesn't "freeze"
+    navigation.navigate("Questionnaire1");
+  }
+};
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
@@ -101,7 +123,7 @@ const HomeScreen = ({ navigation }) => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 style={styles.buttonWrapper}
-                onPress={() => navigation.navigate("Questionnaire1")} // ⬅️ Start Check-in
+                onPress={handleMoodCheckIn} // ⬅️ Start Check-in
               >
                 <LinearGradient
                   colors={MOOD_GRADIENT_COLORS}
@@ -129,92 +151,41 @@ const HomeScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* QUICK CHAT & DAILY DOSE GROUP */}
-            <View style={styles.horizontalGroup}>
-              <TouchableOpacity
-                style={[styles.smallCard, styles.flexItem]}
-                onPress={() => navigation.navigate("ChatBot")} // ⬅️ Open Chatbot
-                activeOpacity={0.8}
-              >
-                <View style={styles.quickChatContent}>
-                  <Image
-                    source={QuickChatIcon}
-                    style={styles.smallCardIcon1}
-                    resizeMode="contain"
-                  />
-                  <View style={styles.quickChatTextContainer}>
-                    <Text style={styles.smallCardHeader}>Quick Chat</Text>
-                    <Text style={styles.smallCardSubText}>
-                      Tap to talk to your AI companion
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+          
+{/* QUICK CHAT & DAILY DOSE GROUP */}
+<View style={styles.horizontalGroup}>
+  <TouchableOpacity style={styles.smallCardVertical} onPress={() => navigation.navigate("ChatBot")}>
+    <Image source={QuickChatIcon} style={styles.centeredIconSmall} resizeMode="contain" />
+    <Text style={styles.smallCardHeader}>Quick Chat</Text>
+    <Text style={styles.smallCardSubText}>Tap to talk to your AI companion</Text>
+  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.smallCard, styles.flexItem]}
-                onPress={() => navigation.navigate("GeneralRecs")} // ⬅️ Placeholder for Recommendations
-                activeOpacity={0.8}
-              >
-                <View style={styles.dailyDoseContent}>
-                  <Image
-                    source={DailyDoseIcon}
-                    style={styles.smallCardIcon2}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.smallCardHeader}>
-                    Daily dose of Calmness
-                  </Text>
-                  <Text style={styles.smallCardSubText}>
-                    Try Serene's Space Recommendation Guide
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+  <TouchableOpacity style={styles.smallCardVertical} onPress={() => navigation.navigate("GeneralRecs")}>
+    <Image source={DailyDoseIcon} style={styles.centeredIconPurple} resizeMode="contain" />
+    <Text style={styles.smallCardHeader}>Daily Dose</Text>
+    <Text style={styles.smallCardSubText}>Try Serene Space's Recommendation Guide</Text>
+  </TouchableOpacity>
+</View>
 
-            {/* URGENT SUPPORT CARD */}
-            <View style={styles.card}>
-              <Text style={styles.cardHeader}>Need Urgent Support?</Text>
-              <View style={styles.horizontalGroupSupport}>
-                <TouchableOpacity
-                  style={styles.supportBoxLeft}
-                  onPress={() =>
-                    navigation.navigate("CrisisSupport", {
-                      tab: "professional",
-                    })
-                  } // ⬅️ Pass params
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.supportTextContainer}>
-                    <Text style={styles.supportTextLeft}>
-                      Find a professional best suited for your needs
-                    </Text>
-                  </View>
-                  <Image
-                    source={ProfessionalIcon}
-                    style={styles.supportIconLeft}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
+{/* URGENT SUPPORT CARD */}
+<View style={styles.card}>
+  <Text style={styles.cardHeader}>Need Urgent Support?</Text>
+  <View style={styles.horizontalGroupSupport}>
+    <TouchableOpacity style={styles.supportBoxVertical} onPress={() => navigation.navigate("CrisisSupport", { tab: "professional" })}>
+      <Image source={ProfessionalIcon} style={styles.centeredIconLarge} resizeMode="contain" />
+      <Text style={styles.supportTextBold}>Get Professional Help</Text>
+    </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.supportBoxRight}
-                  onPress={() =>
-                    navigation.navigate("CrisisSupport", { tab: "hotlines" })
-                  } // ⬅️ Pass params
-                  activeOpacity={0.8}
-                >
-                  <Image
-                    source={HotlineIcon}
-                    style={styles.supportIconRight}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.supportTextRight}>
-                    Contact Crisis Hot-lines
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+    <TouchableOpacity style={styles.supportBoxVertical} onPress={() => navigation.navigate("CrisisSupport", { tab: "hotlines" })}>
+      <Image source={HotlineIcon} style={styles.centeredIconLarge} resizeMode="contain" />
+      <Text style={styles.supportTextBold}>Crisis Hotlines</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+
+
+
+           
 
             {/* COMMUNITY CARD */}
             <TouchableOpacity
@@ -253,6 +224,20 @@ const HomeScreen = ({ navigation }) => {
         onClose={() => setDrawerVisible(false)}
         navigation={navigation}
       />
+      {/* ✅ CENTERED CUSTOM ALERT MODAL */}
+<Modal transparent={true} visible={alertVisible} animationType="fade">
+  <View style={styles.modalOverlay}>
+    <View style={styles.customAlert}>
+      <Text style={styles.alertTitle}>Check-in Restricted</Text>
+      <Text style={styles.alertMessage}>
+        You've already logged your mood for today! One entry per day helps us give you more accurate trends. See you tomorrow! 🌸
+      </Text>
+      <TouchableOpacity style={styles.alertButton} onPress={() => setAlertVisible(false)}>
+        <Text style={styles.alertButtonText}>Okay</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
     </View>
   );
 };
@@ -276,19 +261,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   headerIcon: {
-    width: 24,
-    height: 24,
+    width: 22,
+    height: 22,
     tintColor: "#512DA8",
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     color: "#512DA8",
     fontFamily: "Quicksand-SemiBold",
     textAlign: "center",
   },
   avatarCircle: {
-    width: 35, 
-    height: 35,
+    width: 32, 
+    height: 32,
     borderRadius: 20,
     backgroundColor: "#7E57C2", 
     justifyContent: "center",
@@ -384,10 +369,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     textAlign: "center",
     backgroundColor: "#835ed8ff",
-    width: 120,
-    height: 27,
-    borderRadius: 10,
+    width: 125,
+    height: 30,
+    borderRadius: 5,
     paddingVertical: 3,
+    //  marginBottom: 0,
   },
   moodGraph: {
     width: "100%",
@@ -413,13 +399,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 5,
   },
-  smallCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: 5,
-    height: 140,
+ smallCardVertical: { 
+    ...SUPPORT_CARD_BASE,
+    alignItems: "center", 
+    justifyContent: "center",
+    padding: 10 
   },
-
   quickChatContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -447,19 +432,18 @@ const styles = StyleSheet.create({
     height: 30,
     tintColor: "#7f60c7ff",
   },
-
-  smallCardHeader: {
+smallCardHeader: {
     fontSize: 16,
     color: "#000",
     fontFamily: "Quicksand-Bold",
     textAlign: "center",
-    marginBottom: 0,
   },
-  smallCardSubText: {
-    fontSize: 14,
-    color: "#585454ff",
+ smallCardSubText: {
+    fontSize: 11, // Slightly smaller to fit the longer text
+    color: "#555",
     fontFamily: "Quicksand-Regular",
     textAlign: "center",
+    lineHeight: 14,
   },
 
   // --- Urgent Support Group Styles ---
@@ -470,14 +454,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  // LEFT BOX (Professional) Styles: Horizontal Layout (Matching Quick Chat)
-  supportBoxLeft: {
+  
+
+ supportBoxVertical: { 
     ...SUPPORT_CARD_BASE, 
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#D8DAF4",
-    padding: 10, 
+    alignItems: "center", 
+    justifyContent: "center",
+    padding: 10
   },
+
   supportIconLeft: {
     width: 45,
     height: 50,
@@ -496,14 +482,24 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // RIGHT BOX (Hotline) Styles: Vertical and Centered Layout (Matching Daily Dose)
-  supportBoxRight: {
-    ...SUPPORT_CARD_BASE, // ⬅️ Compose base style
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "column",
-    backgroundColor: "#D8DAF4",
-    padding: 15, // Override base padding for vertical layout
+
+
+ centeredIconSmall: { 
+    width: 45, 
+    height: 45, 
+    marginBottom: 5 
+  },
+  centeredIconLarge: { 
+    width: 50, 
+    height: 50, 
+    marginBottom: 8, 
+    tintColor: "#7E57C2" 
+  },
+ supportTextBold: { 
+    fontSize: 13, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    textAlign: "center" 
   },
   supportIconRight: {
     width: 45,
@@ -524,6 +520,58 @@ const styles = StyleSheet.create({
     height: 180,
     marginTop: 15,
     marginBottom: 20,
+  },
+  // ✅ CUSTOM MODAL STYLES (CENTERED)
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', // Centers vertically
+    alignItems: 'center'      // Centers horizontally
+  },
+  customAlert: { 
+    width: '85%', 
+    backgroundColor: '#FFF', 
+    borderRadius: 25, 
+    padding: 30, 
+    alignItems: 'center',     // Centers children (title, message, button)
+    elevation: 10 
+  },
+  alertTitle: { 
+    fontSize: 18, 
+    fontFamily: 'Quicksand-Bold', 
+    color: '#512DA8', 
+    marginBottom: 12 
+  },
+  alertMessage: { 
+    fontSize: 14, 
+    fontFamily: 'Quicksand-Medium', 
+    color: '#444', 
+    textAlign: 'center',      // ✅ This specifically centers the text lines
+    lineHeight: 22, 
+    marginBottom: 25 
+  },
+  alertButton: { 
+    backgroundColor: '#7B61FF', 
+    paddingVertical: 12, 
+    paddingHorizontal: 40, 
+    borderRadius: 15 
+  },
+  alertButtonText: { 
+    color: '#FFF', 
+    fontFamily: 'Quicksand-Bold', 
+    fontSize: 16 
+  },
+  centeredIconPurple: { 
+    width: 35, 
+    height: 35, 
+    marginBottom: 8, 
+    // tintColor: "#7E57C2" // ✅ Keeps Daily Dose icon purple
+  },
+  centeredIconLarge: { 
+    width: 50, 
+    height: 50, 
+    marginBottom: 8, 
+    tintColor: "#7E57C2" 
   },
 });
 

@@ -1,102 +1,67 @@
+// Anxiety Dimension
 import React, { useState } from "react";
-import {View,Text,StyleSheet,Image,TouchableOpacity,ScrollView,Alert,} from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView, Alert, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import OptionButton from "../components/OptionButton";
+import * as Progress from 'react-native-progress';
 import QuestionnaireNavButton from "../components/QuestionnaireNavButton";
 
-// NOTE: Ensure these PNG assets exist in your src/assets/ folder:
-const CrossIcon = require("../assets/CrossIcon.png");
-const GlobeIcon = require("../assets/GlobeIcon.png");
 const CheckMoodIcon = require("../assets/CheckMoodIcon.png");
+const screenWidth = Dimensions.get('window').width;
 
-const Questionnaire2 = ({ navigation }) => {
+const Questionnaire2 = ({ navigation, route }) => {
+  const { q1 } = route.params;
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-
-  const answerOptions = [
-    { label: "Strongly Disagree", value: 1 },
-    { label: "Slightly Disagree", value: 2 },
-    { label: "Neutral", value: 3 },
-    { label: "Slightly Agree", value: 4 },
-    { label: "Strongly Agree", value: 5 },
-  ];
 
   const handleNext = () => {
     if (selectedAnswer !== null) {
-      console.log(`Answer selected: ${selectedAnswer}. Proceeding to Q2.`);
-      navigation.navigate("Questionnaire3");
+      // Passing q1 and q2 to the next screen
+      navigation.navigate("Questionnaire3", { q1, q2: selectedAnswer });
     } else {
-      Alert.alert(
-        "Selection Required",
-        "Please select an option before proceeding.",
-      );
+      Alert.alert("Selection Required", "Please select an option.");
     }
   };
 
   return (
-    <LinearGradient
-      colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.container}
-    >
+    <LinearGradient colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Home")}
-            style={styles.closeButton}
-          >
-            <Image
-              source={CrossIcon}
-              style={styles.closeIcon}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          <View style={{ width: 25 }} />
+        
+        <View style={styles.progressHeader}>
+          {/* Progress is 1/6 for the second screen */}
+          <Progress.Bar 
+            progress={0.166} 
+            width={screenWidth * 0.8} 
+            color="#7E57C2" 
+            unfilledColor="rgba(255, 255, 255, 0.3)" 
+            borderWidth={2} 
+            height={16} 
+            borderRadius={10} 
+            borderColor="#FFFFFF" 
+          />
         </View>
 
-        <View style={styles.progressArea}>
-          <View style={styles.progressBarContainer}>
-            <LinearGradient
-              colors={["#7E57C2", "#4A3A99"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={[styles.progressBarFill, { width: "25%" }]} // ⬅️ Gradient + Width applied here
-            />
-          </View>
-        </View>
-
-        <Text style={styles.feedbackText}>Good job, Keep going💪</Text>
-
+        <Image source={CheckMoodIcon} style={styles.headerIllustration} resizeMode="contain" />
+        <Text style={styles.screenTitle}>Check your Mood</Text>
+        
         <View style={styles.questionCard}>
-          <Text style={styles.questionText}>
-            Q2. I was able to focus well on my tasks and responsibilities today.
-          </Text>
-
+          <Text style={styles.questionText}>Q2. I felt calm and relaxed, without worrying too much.</Text>
           <View style={styles.optionsContainer}>
-            {answerOptions.map((option) => (
-              <OptionButton
-                key={option.value}
-                label={option.label}
-                value={option.value}
-                iconSource={GlobeIcon}
-                selectedValue={selectedAnswer}
-                onSelect={setSelectedAnswer}
-              />
+             {[-2, -1, 0, 1, 2].map((val) => (
+               <TouchableOpacity 
+                  key={val} 
+                  style={[styles.option, selectedAnswer === val && styles.selectedOption]} 
+                  onPress={() => setSelectedAnswer(val)}
+               >
+                 <Text style={[styles.optionText, selectedAnswer === val && styles.selectedOptionText]}>
+                    {val === -2 ? "Strongly Disagree" : val === 2 ? "Strongly Agree" : val === -1 ? "Slightly Disagree" : val === 1 ? "Slightly Agree" : "Neutral"}
+                 </Text>
+               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         <View style={styles.bottomButtons}>
-          <QuestionnaireNavButton
-            title="Prev"
-            onPress={() => navigation.goBack()}
-            type="prev"
-          />
-          <QuestionnaireNavButton
-            title="Next"
-            onPress={handleNext}
-            type="next"
-          />
+          <QuestionnaireNavButton title="Prev" onPress={() => navigation.goBack()} type="prev" />
+          <QuestionnaireNavButton title="Next" onPress={handleNext} type="next" />
         </View>
       </ScrollView>
     </LinearGradient>
@@ -105,84 +70,54 @@ const Questionnaire2 = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
+  scrollContent: { 
+    flexGrow: 1, 
+    alignItems: "center", 
+    paddingHorizontal: 25, 
+    paddingTop: 15, // ✅ Matches the new higher alignment
+    paddingBottom: 40 // ✅ Guarantees the buttons never touch the screen edge
+  },
+  progressHeader: { 
+    marginTop: 15, // ✅ REDUCED FROM 60! This was the culprit pushing buttons off screen.
+    marginBottom: 15 
+  },
+  headerIllustration: { width: "70%", height: 130, marginBottom: 10 },
+  screenTitle: { 
+    fontSize: 22, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    marginBottom: 20 // ✅ Slightly tightened to save space
+  },
+  questionCard: { 
+    backgroundColor: "#FFFFFF", 
+    borderRadius: 15, 
+    padding: 20, 
+    width: "100%", 
+    elevation: 3 
+  },
+  questionText: { fontSize: 18, color: "#333", fontFamily: "Quicksand-SemiBold", marginBottom: 20 },
+  optionsContainer: { width: "100%" },
+  option: { 
+    padding: 15, 
+    borderRadius: 10, 
+    backgroundColor: "#F8F9FE", 
+    marginBottom: 10, 
+    borderWidth: 1, 
+    borderColor: "#E8E3F9" 
+  },
+  selectedOption: { backgroundColor: "#E8E3F9", borderColor: "#7E57C2" },
+  optionText: { fontSize: 16, color: "#555", fontFamily: "Quicksand-Medium" },
+  selectedOptionText: { color: "#512DA8", fontFamily: "Quicksand-Bold" },
+  
+  bottomButtons: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
     alignItems: "center",
-    paddingHorizontal: 25,
-    paddingTop: 50,
-    paddingBottom: 50,
-    justifyContent: "flex-start",
-    // ⬅️ FIX 2: Push content to the top
+    width: "95%", 
+    marginTop: 30, // ✅ Tightened up
+    paddingBottom: 10 
   },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "flex-start", // Only Cross icon is on the left
-    width: "100%",
-    marginBottom: 10, // Reduced margin
-  },
-  closeButton: { padding: 5 },
-  closeIcon: { width: 25, height: 25, tintColor: "#555" },
-
-  // --- Progress Bar Styles ---
-  progressArea: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 45,
-    marginTop: 35,
-    paddingHorizontal: 15,
-  },
-
-  progressBarContainer: {
-    width: "100%", // Max width of the bar
-    height: 20, // Fixed height for a sleek bar
-    backgroundColor: "#EBEBEB",
-    borderRadius: 4,
-  },
-  progressBarFill: {
-    // 🛑 No width here, applied in JSX
-    height: "100%",
-    borderRadius: 4,
-  },
-
-  // --- Header & Text Styles ---
-  feedbackText: {
-    fontSize: 22,
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
-    marginBottom: 30,
-    alignSelf: "center", // Align to the left (start of the content area)
-  },
-
-  // --- Question Card Styles ---
-  questionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: 20,
-    width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-    // marginBottom: 10,
-    marginTop: 60,
-  },
-  questionText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    fontFamily: "Quicksand-SemiBold",
-    marginBottom: 40,
-  },
-  optionsContainer: {},
-
-  // --- Bottom Navigation ---
-  bottomButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "95%",
-    marginTop: 30,
-  },
+  loaderContainer: { width: 100, alignItems: "center" } // Only used in Q7, but harmless to have in all
 });
 
 export default Questionnaire2;

@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [authChecked, setAuthChecked] = useState(false);
 
   // Base URL for your API (Android Emulator uses 10.0.2.2)
-  const API_URL = "http://10.0.2.2:5000/api";
+  const API_URL = "http://10.94.247.196/api";
 
   // ✅ HELPER: Check if user is a member of a group
   // Returns true if the groupTitle exists in the user's joinedGroups array

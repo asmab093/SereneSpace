@@ -1,158 +1,195 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import axios from 'axios';
+import { BarChart } from "react-native-gifted-charts"; 
+import { AuthContext } from "../context/AuthContext"; 
+import { BASE_URL } from '../api/config';
 import CommunityTabButton from "../components/CommunityTabButton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import HomeFooter from "../components/HomeFooter"; 
+import HomeFooter from "../components/HomeFooter";
 
-// Asset Imports
+// Asset Paths
 const BackIcon = require("../assets/BackIcon.png");
-const ArrowIcon = require("../assets/RightArrowIcon.png");
-const MoodChartWeek1 = require("../assets/MoodChartWeek1.png");
-const MoodChartWeek2 = require("../assets/MoodFrameWeek2.png");
+const GreatIcon = require("../assets/GreatIcon.png");
+const GoodIcon = require("../assets/GoodIcon.png");
+const OkayIcon = require("../assets/OkayIcon.png");
+const BadIcon = require("../assets/BadIcon.png");
+const TerribleIcon = require("../assets/TerribleIcon.png");
 
-const CHART_IMAGE_HEIGHT = 280;
-const screenWidth = Dimensions.get("window").width;
-const MOOD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
-
-// 💡 navigation is now the primary prop
 const MoodStatsScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const [view, setView] = useState("firstHalf");
+  const { token } = useContext(AuthContext); 
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
   const [timeframe, setTimeframe] = useState("thisWeek");
+  const getMoodColor = (moodName) => {
+  const m = moodName.toLowerCase();
+  if (m.includes("happy") || m.includes("content") || m.includes("excited") || m.includes("joyful")) return "#FFA500";
+  if (m.includes("sad") || m.includes("low") || m.includes("lonely")) return "#76d1f5";
+  if (m.includes("neutral") || m.includes("okay")) return "#808080";
+  return "#FF0000"; // Red for everything else
+};
 
-  const currentChartImage =
-    view === "firstHalf" ? MoodChartWeek1 : MoodChartWeek2;
+  useEffect(() => {
+    fetchStats();
+  }, [timeframe]);
 
-  const handleNext = () => {
-    if (view === "firstHalf") setView("secondHalf");
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      // Passing timeframe as a query parameter to the backend
+      const response = await axios.get(`${BASE_URL}/api/mood/insights?timeframe=${timeframe}`, {
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      setStats(response.data);
+    } catch (error) {
+      console.error("Stats Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePrevious = () => {
-    if (view === "secondHalf") setView("firstHalf");
+  const renderChartData = () => {
+    if (!stats?.moodData) return [];
+    
+    return stats.moodData.map((item) => {
+      const avg = item.averageScore;
+      const mood = item.finalMood;
+      
+      // Mapping scores to 5 levels for the Y-axis
+      let chartValue = 3; 
+      if (avg > 1.0) chartValue = 5;      
+      else if (avg > 0.3) chartValue = 4; 
+      else if (avg >= -0.3) chartValue = 3; 
+      else if (avg >= -1.0) chartValue = 2; 
+      else chartValue = 1; 
+// Color coding based on mood category
+      let color = "#808080"; // Default Gray (Neutral)
+
+if (mood.includes("Happy") || mood.includes("Content") || mood.includes("Excited") || mood.includes("Joyful")) {
+  color = "#FFA500"; // Yellow
+} else if (mood.includes("Sad") || mood.includes("Low") || mood.includes("Lonely")) {
+  color = "#76d1f5"; // Blue
+} else if (mood.includes("Neutral") || mood.includes("Okay")) {
+  color = "#808080"; // Gray
+} else {
+  color = "#FF0000"; // Red (Distressed/Anxious/Tired etc.)
+}
+
+      return {
+        value: chartValue,
+        // Labeling by day name (e.g., Mon, Tue)
+        label: new Date(item.createdAt).toLocaleDateString([], { weekday: 'short' }),
+        frontColor: color,
+      };
+    });
   };
+
+  const renderWeeklySummary = () => {
+    if (!stats || stats.locked) {
+        return (
+            <Text style={styles.summaryText}>
+                Keep tracking your mood! You have to log for at least 5 days for your personalized weekly insights to be generated.
+            </Text>
+        );
+    }
+
+    const mood = stats.dominantMood;
+    let summaryContent = " Consistent tracking is a powerful tool for self-awareness.";
+
+    if (mood.includes("Happy") || mood.includes("Content")) {
+        summaryContent = " It looks like you've had a balanced and peaceful period. Continue leaning into the healthy routines that brought you this peace.";
+    } else if (mood.includes("Sad") || mood.includes("Low")) {
+        summaryContent = " It's okay to feel low. Remember to be gentle with yourself and lean on your support system.";
+    } else if (mood.includes("Neutral")) {
+        summaryContent = " A neutral week represents a stable baseline. Use this time to maintain your healthy habits.";
+    }
+
+    return (
+      <Text style={styles.summaryText}>
+        Based on your logs, your dominant mood was <Text style={[styles.boldMoodText, { color: getMoodColor(mood) }]}>{mood}</Text>.{summaryContent}
+      </Text>
+    );
+  };
+
+  if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#7E57C2" /></View>;
 
   return (
     <View style={{ flex: 1 }}>
-      <LinearGradient
-        colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.container}
-      >
-        <View style={styles.header}>
-          {/* ✅ FIXED: Use navigation.goBack() */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Image
-              source={BackIcon}
-              style={styles.backIcon}
-              resizeMode="contain"
-            />
+      <LinearGradient colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]} style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image source={BackIcon} style={styles.backIcon} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Your Mood Stats</Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.toggleContainer}>
-            <View style={styles.tabBar}>
-              <CommunityTabButton
-                title="This Week"
-                isSelected={timeframe === "thisWeek"}
-                onPress={() => setTimeframe("thisWeek")}
-              />
-              <CommunityTabButton
-                title="Last Week"
-                isSelected={timeframe === "lastWeek"}
-                onPress={() => setTimeframe("lastWeek")}
-              />
-            </View>
+        <View style={styles.mainContent}>
+          <View style={styles.tabBar}>
+            <CommunityTabButton title="This Week" isSelected={timeframe === "thisWeek"} onPress={() => setTimeframe("thisWeek")} />
+            <CommunityTabButton title="Last Week" isSelected={timeframe === "lastWeek"} onPress={() => setTimeframe("lastWeek")} />
           </View>
 
-          <View style={styles.moodStatsPanel}>
-            <View style={styles.chartWrapper}>
-              {view === "secondHalf" && (
-                <TouchableOpacity
-                  style={styles.navArrow}
-                  onPress={handlePrevious}
-                >
-                  <Image
-                    source={ArrowIcon}
-                    style={styles.leftArrowIcon}
-                    resizeMode="contain"
+          {/* CHART CARD */}
+          <View style={styles.whiteCard}>
+            {stats?.locked ? (
+              <View style={styles.lockContent}>
+                <Text style={styles.lockEmoji}>🔒</Text>
+                <Text style={styles.cardHeader}>Insight Chart Locked</Text>
+                <Text style={styles.lockMessage}>Log at least 5 days to unlock your trends.</Text>
+              </View>
+            ) : (
+              <View style={styles.chartWrapper}>
+                <View style={styles.customYAxis}>
+                  <View style={styles.yLevel}><Image source={GreatIcon} style={styles.customYIcon} /><Text style={[styles.yText, { color: "#FFA500" }]}>Excited</Text></View>
+                  <View style={styles.yLevel}><Image source={GoodIcon} style={styles.customYIcon} /><Text style={[styles.yText, { color: "#FFA500" }]}>Happy</Text></View>
+                  <View style={styles.yLevel}><Image source={OkayIcon} style={styles.customYIcon} /><Text style={[styles.yText, { color: "#808080" }]}>Okay</Text></View>
+                  <View style={styles.yLevel}><Image source={BadIcon} style={styles.customYIcon} /><Text style={[styles.yText, { color: "#76d1f5" }]}>Sad</Text></View>
+                  <View style={styles.yLevel}><Image source={TerribleIcon} style={styles.customYIcon} /><Text style={[styles.yText, { color: "#FF0000" }]}>Distressed</Text></View>
+                  <View style={{ height: 20 }} /> 
+                </View>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+                  <BarChart
+                    data={renderChartData()}
+                    height={200}
+                    barWidth={20}
+                    spacing={25}
+                    roundedTop
+                    hideRules
+                    xAxisThickness={0}
+                    yAxisThickness={0}
+                    noOfSections={5}
+                    maxValue={5}
+                    hideYAxisText={true}
+                    barBorderRadius={12}
                   />
-                </TouchableOpacity>
-              )}
-
-              <Image
-                source={currentChartImage}
-                style={styles.chartImage}
-                resizeMode="contain"
-              />
-
-              {view === "firstHalf" && (
-                <TouchableOpacity style={styles.navArrow} onPress={handleNext}>
-                  <Image
-                    source={ArrowIcon}
-                    style={styles.rightArrowIcon}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.dotContainer}>
-              <View
-                style={[styles.dot, view === "firstHalf" && styles.dotActive]}
-              />
-              <View
-                style={[styles.dot, view === "secondHalf" && styles.dotActive]}
-              />
-            </View>
+                </ScrollView>
+              </View>
+            )}
           </View>
 
-          <View style={styles.insightsCard}>
-            <Text style={styles.insightsHeader}>Weekly Insights ✨</Text>
-            <Text style={styles.insightsText}>
-              Your week was fairly mixed with a slight negative tilt. There were
-              some high points (Calm, Happy) but also some challenges (Angry,
-              Sad, Anxious). Mid-week looked tough, but you ended on a stronger
-              note. Keep focusing on what helped you feel better towards the
-              weekend 💜
-            </Text>
+          {/* SUMMARY CARD */}
+          <View style={[styles.whiteCard, styles.insightsCard]}>
+            <Text style={styles.cardHeader}>{timeframe === "thisWeek" ? "Weekly" : "Last Week"} Insights ✨</Text>
+            <ScrollView nestedScrollEnabled={true} style={styles.summaryScrollView}>
+               {renderWeeklySummary()}
+            </ScrollView>
           </View>
 
-          <TouchableOpacity
-            style={styles.recommendationsButton}
-            onPress={() => navigation.navigate("PersonalRecs")}
+          <TouchableOpacity 
+            style={styles.recommendationBtn} 
+            onPress={() => navigation.navigate("PersonalRecs", { recommendations: stats?.recommendations })}
           >
-            <LinearGradient
-              colors={MOOD_GRADIENT_COLORS}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.gradient}
-            >
-              <Text style={styles.recommendationsButtonText}>
-                View Recommendations
-              </Text>
+            <LinearGradient colors={["#7B61FF", "#78469A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.btnGradient}>
+              <Text style={styles.btnText}>Personalized Recommendations</Text>
             </LinearGradient>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </LinearGradient>
-      <View style={{ paddingBottom: insets.bottom, backgroundColor: "#fff" }}>
+      
+      <View style={styles.footerWrapper}>
         <HomeFooter navigation={navigation} />
       </View>
     </View>
@@ -161,156 +198,48 @@ const MoodStatsScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  gradient: {
-    height: 45,
-    width: "100%",
-    paddingVertical: 0,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
+  header: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    paddingHorizontal: 20, 
+    paddingBottom: 15, 
+    backgroundColor: '#FFF', 
+    width: '100%', 
+    elevation: 4 // Added shadow to match the others
   },
-  // --- Header ---
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 40,
-    paddingHorizontal: 15,
-    backgroundColor: "#FFFFFF",
-    paddingBottom: 10,
+  backIcon: { 
+    width: 24, 
+    height: 24, 
+    tintColor: "#512DA8", 
+    resizeMode: 'contain' 
   },
-  backButton: { padding: 5 },
-  backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
-  headerTitle: {
-    fontSize: 20,
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
-    marginLeft: 15,
+  headerTitle: { 
+    fontSize: 18, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    marginLeft: 15 
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-
-  tabBar: {
-    flexDirection: "row",
-    justifyContent: "space-between", // Try 'space-between' or 'space-around'
-    alignItems: "center",
-    borderRadius: 20,
-    padding: 5,
-    width: "100%", // Ensure it spans the full width of its parent (scrollContent)
-    marginBottom: 10,
-  },
-  // --- Mood Stats Panel (Chart) ---
-  moodStatsPanel: {
-    width: "95%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: 10,
-    marginBottom: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    height: "42%",
-    // borderWidth:1,
-    position: "relative",
-  },
-  chartWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 10,
-    height: "95%",
-    //  borderWidth:1,
-  },
-  chartImage: {
-    // Adjust width based on screen size minus padding/arrows
-    width: screenWidth - 100,
-    height: CHART_IMAGE_HEIGHT,
-  },
-
-  // Navigation Arrows
-  navArrow: {
-    padding: 5,
-  },
-  leftArrowIcon: {
-    width: 20,
-    height: 20,
-    transform: [{ rotate: "180deg" }], // Rotate for left arrow
-    tintColor: "#512DA8",
-    marginHorizontal: -10,
-    // borderWidth:1,
-  },
-  rightArrowIcon: {
-    width: 20,
-    height: 20,
-    marginHorizontal: -20,
-    // borderWidth:1,
-    tintColor: "#512DA8",
-  },
-
-  // Dots
-  dotContainer: {
-    flexDirection: "row",
-    marginTop: 0,
-    // borderWidth:1,
-    zIndex: 1,
-    position: "absolute",
-    bottom: -20,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 4,
-    backgroundColor: "#D7D9F4",
-    marginHorizontal: 4,
-  },
-  dotActive: {
-    backgroundColor: "#512DA8",
-  },
-
-  // --- Insights Card ---
-  insightsCard: {
-    width: "100%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: 20,
-    marginTop: 35,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  insightsHeader: {
-    fontSize: 16,
-    // fontWeight: "bold",
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
-    marginBottom: 10,
-  },
-  insightsText: {
-    fontSize: 14,
-    color: "#333",
-    fontFamily: "Quicksand-Regular",
-    lineHeight: 20,
-  },
-
-  // --- Recommendations Button ---
-  recommendationsButton: {
-    width: 250,
-    borderRadius: 25,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  recommendationsButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontFamily: "Quicksand-SemiBold",
-    fontWeight: "600",
-  },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  mainContent: { flex: 1, paddingHorizontal: 20, paddingTop: 15, paddingBottom: 85 },
+  tabBar: { flexDirection: "row", justifyContent: "space-between", marginBottom: 15 },
+  whiteCard: { backgroundColor: "#FFFFFF", borderRadius: 20, paddingTop: 15, paddingBottom: 20, paddingHorizontal: 20, elevation: 4, marginBottom: 15, width: '100%' },
+  cardHeader: { fontSize: 18, color: "#512DA8", fontFamily: "Quicksand-Bold", marginBottom: 8, textAlign: 'center' },
+  insightsCard: { flexShrink: 1, maxHeight: 180 },
+  summaryScrollView: { marginTop: 5 },
+  summaryText: { fontSize: 14, color: "#444", fontFamily: "Quicksand-Medium", textAlign: 'center', lineHeight: 22 },
+  boldMoodText: { fontFamily: "Quicksand-Bold", color: "#FFA500" },
+  chartWrapper: { flexDirection: 'row', width: '100%', alignItems: 'flex-start' },
+  customYAxis: { justifyContent: 'space-between', height: 240, paddingRight: 10 },
+  yLevel: { alignItems: 'center', justifyContent: 'center' },
+  customYIcon: { width: 26, height: 26, resizeMode: 'contain' },
+  yText: { fontSize: 8, fontWeight: "bold", marginTop: 0 }, 
+  recommendationBtn: { width: "90%", marginTop: 15, marginBottom: 20, alignSelf: 'center' },
+  btnGradient: { height: 55, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  btnText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Quicksand-Bold" },
+  footerWrapper: { position: 'absolute', bottom: 0, width: '100%' },
+  lockContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 30 },
+  lockEmoji: { fontSize: 40, marginBottom: 10 },
+  lockMessage: { fontFamily: "Quicksand-Medium", color: "#666", textAlign: 'center' }
 });
 
 export default MoodStatsScreen;

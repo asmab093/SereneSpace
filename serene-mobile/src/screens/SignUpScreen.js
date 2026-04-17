@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: "#512DA8",
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 30,
     marginTop: 15,
     fontFamily: "Quicksand-Bold",
   },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   bottomBlock: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 35,
+    marginBottom: 55,
   },
   errorText: {
     color: "#D32F2F",

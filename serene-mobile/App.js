@@ -4,9 +4,8 @@ import { Asset } from "expo-asset";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-// import { createDrawerNavigator } from "@react-navigation/drawer"; // ✅ Added
-import { AuthProvider, AuthContext } from "./src/context/AuthContext"; // ✅ Added AuthContext
+import { createStackNavigator, CardStyleInterpolators } from "@react-navigation/stack"; // ✅ Added CardStyleInterpolators
+import { AuthProvider, AuthContext } from "./src/context/AuthContext"; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 
@@ -17,10 +16,15 @@ import SignInScreen from "./src/screens/SignInScreen";
 import AuthSuccessScreen from "./src/screens/AuthSuccessScreen";
 import AddContactScreen from "./src/screens/AddContactScreen";
 import HomeScreen from "./src/screens/HomeScreen";
-import Questionnaire1 from "./src/screens/Questionnaire1";
-import Questionnaire2 from "./src/screens/Questionnaire2";
-import Questionnaire3 from "./src/screens/Questionnaire3";
-import Questionnaire4 from "./src/screens/Questionnaire4";
+import Questionnaire1 from './src/screens/Questionnaire1';
+import Questionnaire2 from './src/screens/Questionnaire2';
+import Questionnaire3 from './src/screens/Questionnaire3';
+import Questionnaire4 from './src/screens/Questionnaire4';
+import Questionnaire5 from './src/screens/Questionnaire5'; // ⬅️ ADD THIS
+import Questionnaire6 from './src/screens/Questionnaire6'; // ⬅️ ADD THIS
+import Questionnaire7 from './src/screens/Questionnaire7'; // ⬅️ ADD THIS
+import MoodStatsScreen from './src/screens/MoodStatsScreen';
+import PersonalizedRecommendationsScreen from './src/screens/PersonalizedRecommendationScreen';
 import QuizCompletionScreen from "./src/screens/QuizCompletionScreen";
 import TermsAndConditionsScreen from "./src/screens/Terms&ConditionScreen";
 import PrivacyPolicyScreen from "./src/screens/PrivacyPolicyScreen";
@@ -32,10 +36,9 @@ import GroupDetailScreen from "./src/screens/GroupDetailScreen";
 import WritePostScreen from "./src/screens/WritePostScreen";
 import CrisisSupportScreen from "./src/screens/CrisisSupportScreen";
 import ChatBotScreen from "./src/screens/ChatBotScreen";
-import MoodStatsScreen from "./src/screens/MoodStatsScreen";
 import CustomDrawer from "./src/components/CustomDrawer";
-import PersonalizedRecommendationsScreen from "./src/screens/PersonalizedRecommendationScreen";
 import GeneralRecommendationsScreen from "./src/screens/GeneralRecommendation1";
+
 // --- ASSET ARRAY ---
 const requiredImages = [
   require("./src/assets/BackIcon.png"),
@@ -43,7 +46,6 @@ const requiredImages = [
   require("./src/assets/AddUser.png"),
   require("./src/assets/AnxietyIcon.png"),
   require("./src/assets/AuthSuccess.png"),
-  require("./src/assets/BackIcon.png"),
   require("./src/assets/BearAvatar.png"),
   require("./src/assets/BioIcon.png"),
   require("./src/assets/BirdAvatar.png"),
@@ -140,10 +142,7 @@ const requiredImages = [
   require("./src/assets/JournalIcon.png"),
   require("./src/assets/CelebrationIcon2.png"),
   require("./src/assets/phone-call.png"),
-  require("./src/assets/UserGroupIcon.png"),
-  require("./src/assets/TimeIcon.png"),
   require("./src/assets/flower.png"),
-  require("./src/assets/FlowerAvatar.png"),
   require("./src/assets/owl.png"),
   require("./src/assets/woman.png"),
   require("./src/assets/bear.png"),
@@ -156,32 +155,14 @@ const requiredImages = [
 ];
 
 const Stack = createStackNavigator();
-// const Drawer = createDrawerNavigator();
 
-// 💡 Drawer Navigator: Wraps HomeScreen to provide the side menu
-// const DrawerNavigator = () => {
-//   return (
-//     <Drawer.Navigator
-//       drawerContent={(props) => <CustomDrawer {...props} />}
-//       screenOptions={{
-//         headerShown: false,
-//         drawerStyle: { width: "75%" },
-//       }}
-//     >
-//       <Drawer.Screen name="HomeMain" component={HomeScreen} />
-//     </Drawer.Navigator>
-//   );
-// };
-
-// Helper function to pre-load images
 function cacheImages(images) {
   return images.map((image) => Asset.fromModule(image).downloadAsync());
 }
 
-// MAIN APP CONTENT (Lives inside Provider)
 const AppMain = () => {
   const [assetsReady, setAssetsReady] = useState(false);
-  const { user, login, authChecked, setAuthChecked } = useContext(AuthContext);
+  const { login, setAuthChecked } = useContext(AuthContext);
 
   const [fontsLoaded] = useFonts({
     "Quicksand-Light": require("./src/assets/fonts/Quicksand-Light.ttf"),
@@ -191,41 +172,30 @@ const AppMain = () => {
     "Quicksand-SemiBold": require("./src/assets/fonts/Quicksand-SemiBold.ttf"),
   });
 
-  // Inside App.js -> AppMain
   useEffect(() => {
     async function prepare() {
       try {
-        // 1. Pre-load assets
         const imagePromises = cacheImages(requiredImages);
         await Promise.all(imagePromises);
 
-        // 2. Look for the user on the physical Disk
         const savedUser = await AsyncStorage.getItem("userData");
 
         if (savedUser) {
-          console.log("💎 DISK CHECK: savedUserData exists on disk!");
           const userData = JSON.parse(savedUser);
-          //Await the login to ensure state is updated before proceeding
           await login(userData);
-          console.log("💾 Found user in Storage, sending to Context...");
-        } else {
-          console.warn("💀 DISK CHECK: AsyncStorage is EMPTY.");
         }
       } catch (e) {
         console.warn("Prepare Error:", e);
       } finally {
-        // Tell the WHOLE app (including Splash) that we are done checking
-        // This 500ms delay is the "safety net" to let the Provider finish its update
         setTimeout(() => {
-          setAuthChecked(true); // Updating Global Context State
-          setAssetsReady(true); // Updating Local AppMain State
+          setAuthChecked(true);
+          setAssetsReady(true);
         }, 500);
       }
     }
     prepare();
   }, []);
 
-  // Wait for Fonts, Images, and Auth check
   if (!fontsLoaded || !assetsReady) {
     return null;
   }
@@ -235,11 +205,13 @@ const AppMain = () => {
       <StatusBar barStyle="dark-content" backgroundColor="#F7F4FD" />
       <NavigationContainer>
         <Stack.Navigator
-          // ✅ DYNAMIC ROUTE: Skip login if user exists
           initialRouteName="Splash"
           screenOptions={{
             headerShown: false,
+            gestureEnabled: true, // Allows swipe back gestures
             animationEnabled: true,
+            // ✅ Added CardStyleInterpolator for smooth horizontal sliding
+            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
           }}
         >
           {/* Auth Flow */}
@@ -249,7 +221,7 @@ const AppMain = () => {
           <Stack.Screen name="AuthSuccess" component={AuthSuccessScreen} />
           <Stack.Screen name="AddContact" component={AddContactScreen} />
 
-          {/*  POINT TO DRAWER: Enables the side menu */}
+          {/* Main App */}
           <Stack.Screen name="Home" component={HomeScreen} />
 
           {/* Questionnaire Flow */}
@@ -257,60 +229,43 @@ const AppMain = () => {
           <Stack.Screen name="Questionnaire2" component={Questionnaire2} />
           <Stack.Screen name="Questionnaire3" component={Questionnaire3} />
           <Stack.Screen name="Questionnaire4" component={Questionnaire4} />
+          <Stack.Screen name="Questionnaire5" component={Questionnaire5} />
+          <Stack.Screen name="Questionnaire6" component={Questionnaire6} />
+          <Stack.Screen name="Questionnaire7" component={Questionnaire7} />
           <Stack.Screen name="QuizComplete" component={QuizCompletionScreen} />
 
           {/* Support & Community */}
           <Stack.Screen name="CrisisSupport" component={CrisisSupportScreen} />
-          {/* <Stack.Screen
-            name="CommunityGroups"
-            component={CommunityGroupSelectionScreen}
-          /> */}
-          {/* <Stack.Screen name="GroupDetail" component={GroupDetailScreen} /> */}
           <Stack.Screen name="WritePost" component={WritePostScreen} />
 
           {/* Profile & Stats */}
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="MoodStats" component={MoodStatsScreen} />
-          <Stack.Screen
-            name="PersonalRecs"
-            component={PersonalizedRecommendationsScreen}
-          />
-          <Stack.Screen
-            name="GeneralRecs"
-            component={GeneralRecommendationsScreen}
-          />
+          <Stack.Screen name="PersonalRecs" component={PersonalizedRecommendationsScreen} />
+          <Stack.Screen name="GeneralRecs" component={GeneralRecommendationsScreen} />
 
           {/* Legal */}
           <Stack.Screen name="Terms" component={TermsAndConditionsScreen} />
           <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} />
 
           {/* Accounts related */}
-          <Stack.Screen
-            name="AccountSecurity"
-            component={AccountSecurityScreen}
-          />
-          {/* <Stack.Screen
-            name="CommunityProfile"
-            component={CommunityProfileCreation}
-          /> */}
+          <Stack.Screen name="AccountSecurity" component={AccountSecurityScreen} />
 
           {/* Chatbot */}
           <Stack.Screen name="ChatBot" component={ChatBotScreen} />
 
+          {/* Community Creation */}
           <Stack.Screen
-            name="CommunityProfileCreation" component={CommunityProfileCreation}
-            options={{ headerShown: false }}
+            name="CommunityProfileCreation" 
+            component={CommunityProfileCreation}
           />
-
-          <Stack.Screen name="CommunityGroups"
+          <Stack.Screen 
+            name="CommunityGroups"
             component={CommunityGroupSelectionScreen}
-            options={{ headerShown: false }}
           />
-
           <Stack.Screen
             name="GroupDetail"
             component={GroupDetailScreen}
-            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>
@@ -319,7 +274,6 @@ const AppMain = () => {
   );
 };
 
-// ✅ ROOT COMPONENT
 const App = () => {
   return (
     <AuthProvider>

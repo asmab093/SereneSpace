@@ -1,96 +1,85 @@
-import React, { useState } from "react";
-import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,} from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import RecommendationTab from "../components/RecommendationTab";
+import axios from 'axios';
+import { AuthContext } from "../context/AuthContext"; 
+import { BASE_URL } from '../api/config';
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // ✅ Imported safe area for matching top spacing
 
-// NOTE: Ensure these PNG assets exist in your src/assets/ folder:
+// Assets
 const BackArrow = require("../assets/BackIcon.png");
 const WarningIcon = require("../assets/WarningIcon.png");
-const StarIcon = require("../assets/StarsIcon.png");
-const SunIcon = require("../assets/SunIcon.png");
-const MusicIcon = require("../assets/MusicIcon.png");
-const MeditationIcon = require("../assets/MeditationIcon.png");
-const CloudIcon = require("../assets/CloudIcon.png");
-const PhoneIcon = require("../assets/PhoneIcon.png");
 const ButtonLeftArrow = require("../assets/ButtonLeftArrow.png");
 
-// Reusing CustomButton import is good practice, but not strictly necessary here since it's not used.
+const CARD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
 const MOOD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
 
+// Custom Recommendation Tab Component built directly into this file
+const CustomTab = ({ title, type, selectedType, onPress }) => {
+  const isSelected = selectedType === type;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.tabButton,
+        isSelected && styles.activeTabButton
+      ]}
+      onPress={() => onPress(type)}
+    >
+      <Text
+        style={[
+          styles.tabText,
+          isSelected && styles.activeTabText
+        ]}
+        numberOfLines={1} 
+      >
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
 const GeneralRecommendation1 = ({ navigation }) => {
+  const insets = useSafeAreaInsets(); // ✅ Initialize safe area insets
+  const { token } = useContext(AuthContext);
   const [selectedCategory, setSelectedCategory] = useState("daily_uplift");
-  // NOTE: Gradient colors are moved inside the component definition as they are constants
-  const CARD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/mood/general-recommendations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setRecommendations(response.data);
+      } catch (error) {
+        console.error("Error fetching general recs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecommendations();
+  }, []);
 
   const handleTabSelect = (category) => {
     setSelectedCategory(category);
   };
-  // --- Data Arrays for Tab Content ---
-  const DAILY_UPLIFT_DATA = [
-    {
-      icon: StarIcon,
-      text: "Start your morning with 3 deep breaths and a light stretch.",
-      align: "flex-start",
-    },
-    {
-      icon: SunIcon,
-      text: "Step outside for 10 minutes of sunlight after lunch.",
-      align: "flex-end",
-    },
-    {
-      icon: MusicIcon,
-      text: "Play upbeat music while getting ready to boost your mood.",
-      align: "flex-start",
-    },
-    {
-      icon: SunIcon,
-      text: "Step outside for 10 minutes of sunlight after lunch.",
-      align: "flex-end",
-    },
-    {
-      icon: MusicIcon,
-      text: "Play upbeat music while getting ready to boost your mood.",
-      align: "flex-start",
-    },
-  ];
 
-  const MINDFUL_MOMENTS_DATA = [
-    {
-      icon: MeditationIcon,
-      text: "Pause for 2 minutes of breathing when you feel stressed.",
-      align: "flex-start",
-    },
-    {
-      icon: CloudIcon,
-      text: " Replace “I have to” with “I get to” for a positive mindset shift ",
-      align: "flex-end",
-    },
-    {
-      icon: PhoneIcon,
-      text: " Use your phone's focus mode for 30 minutes of calmtime.",
-      align: "flex-start",
-    },
-  ];
+  const getEmojiForRec = (text) => {
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes("sun") || lowerText.includes("morning") || lowerText.includes("outside")) return "🌻"; 
+    if (lowerText.includes("water") || lowerText.includes("hydration") || lowerText.includes("shower") || lowerText.includes("tea")) return "💧";
+    if (lowerText.includes("breath") || lowerText.includes("pause") || lowerText.includes("body scan") || lowerText.includes("stretch")) return "🍃"; 
+    if (lowerText.includes("music") || lowerText.includes("listen") || lowerText.includes("ambient")) return "🎶"; 
+    if (lowerText.includes("mindset") || lowerText.includes("replace") || lowerText.includes("gratitude") || lowerText.includes("compliment")) return "🌸"; 
+    if (lowerText.includes("phone") || lowerText.includes("screen") || lowerText.includes("unplugged") || lowerText.includes("focus")) return "🪴"; 
+    if (lowerText.includes("rest") || lowerText.includes("nap") || lowerText.includes("sleep")) return "🌙"; 
 
-  const RESET_RECHARGE_DATA = [
-    {
-      icon: SunIcon,
-      text: "Schedule a 30-minute nap or quiet rest period in the afternoon.",
-      align: "flex-start",
-    },
-    {
-      icon: MusicIcon,
-      text: "Listen to ambient or binaural music to reset your focus.",
-      align: "flex-end",
-    },
-    {
-      icon: StarIcon,
-      text: "Write down three things you are grateful for today.",
-      align: "flex-start",
-    },
-  ];
+    return "🌿"; 
+  };
 
-  const StepCard = ({ iconSource, text, style }) => (
+  const StepCard = ({ emoji, text, style }) => (
     <View style={[styles.stepBubbleContainer, style]}>
       <View style={styles.stepCardBase}>
         <LinearGradient
@@ -99,7 +88,7 @@ const GeneralRecommendation1 = ({ navigation }) => {
           end={{ x: 0, y: 1 }}
           style={styles.stepHeaderGradient}
         >
-          <Image source={iconSource} style={styles.stepIcon} resizeMode="contain" />
+          <Text style={styles.stepEmoji}>{emoji}</Text>
         </LinearGradient>
         <View style={styles.stepBody}>
           <Text style={styles.stepTextBody}>{text}</Text>
@@ -109,21 +98,30 @@ const GeneralRecommendation1 = ({ navigation }) => {
   );
 
   const renderContent = () => {
-    let data;
-    if (selectedCategory === "mindful_moments") data = MINDFUL_MOMENTS_DATA;
-    else if (selectedCategory === "reset_recharge") data = RESET_RECHARGE_DATA;
-    else data = DAILY_UPLIFT_DATA;
+    if (loading) {
+      return <ActivityIndicator size="large" color="#7B61FF" style={{ marginTop: 50 }} />;
+    }
+
+    const filteredData = recommendations.filter(rec => rec.category === selectedCategory);
+
+    if (filteredData.length === 0) {
+      return <Text style={styles.emptyText}>No recommendations found for this category yet.</Text>;
+    }
 
     return (
       <View style={styles.stepsContainer}>
-        {data.map((item, index) => (
-          <StepCard
-            key={index}
-            iconSource={item.icon}
-            text={item.text}
-            style={item.align === "flex-start" ? styles.stepBubble : styles.stepBubbleRight}
-          />
-        ))}
+        {filteredData.map((item, index) => {
+          const alignmentStyle = index % 2 === 0 ? styles.stepBubble : styles.stepBubbleRight;
+          
+          return (
+            <StepCard
+              key={item._id || index}
+              emoji={getEmojiForRec(item.description)}
+              text={item.description}
+              style={alignmentStyle}
+            />
+          );
+        })}
       </View>
     );
   };
@@ -135,15 +133,15 @@ const GeneralRecommendation1 = ({ navigation }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.contentView}>
-        <View style={styles.header}>
-          {/* ✅ FIXED: Use navigation.goBack() */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Image source={BackArrow} style={styles.backIcon} resizeMode="contain" />
-          </TouchableOpacity>
-          <Text style={styles.screenTitle}>Recommendation Guide🌱</Text>
-        </View>
+      {/* ✅ MOVED HEADER OUTSIDE OF THE PADDED contentView */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={BackArrow} style={styles.backIcon} resizeMode="contain" />
+        </TouchableOpacity>
+        <Text style={styles.screenTitle}>Recommendation Guide🌱</Text>
+      </View>
 
+      <View style={styles.contentView}>
         <View style={styles.warningBox}>
           <Image source={WarningIcon} style={styles.warningIcon} resizeMode="contain" />
           <Text style={styles.warningText}>
@@ -152,9 +150,9 @@ const GeneralRecommendation1 = ({ navigation }) => {
         </View>
 
         <View style={styles.tabsContainer}>
-          <RecommendationTab title="Daily Uplift" type="daily_uplift" selectedType={selectedCategory} onPress={handleTabSelect} />
-          <RecommendationTab title="Mindful Moments" type="mindful_moments" selectedType={selectedCategory} onPress={handleTabSelect} />
-          <RecommendationTab title="Reset & Recharge" type="reset_recharge" selectedType={selectedCategory} onPress={handleTabSelect} />
+          <CustomTab title="Daily Uplift" type="daily_uplift" selectedType={selectedCategory} onPress={handleTabSelect} />
+          <CustomTab title="Mindful Moments" type="mindful_moments" selectedType={selectedCategory} onPress={handleTabSelect} />
+          <CustomTab title="Reset & Recharge" type="reset_recharge" selectedType={selectedCategory} onPress={handleTabSelect} />
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} style={styles.contentScrollArea}>
@@ -184,168 +182,119 @@ const GeneralRecommendation1 = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  contentView: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 0,
-    alignItems: "center",
-  },
-  contentScrollArea: {
-    flex: 1,
-    width: "100%",
-  },
+  contentView: { flex: 1, paddingHorizontal: 20, alignItems: "center" },
+  contentScrollArea: { flex: 1, width: "100%" },
+  emptyText: { textAlign: 'center', marginTop: 40, color: '#512DA8', fontFamily: 'Quicksand-Medium' },
 
-  // --- Header ---
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 40,
-    paddingHorizontal: 15,
-    backgroundColor: "#FFFFFF", // White background
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EBE5F7",
-    width:"115%",
+  // ✅ PERFECTLY MATCHED HEADER STYLES (No 115% width hack)
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    backgroundColor: "#FFFFFF", 
+    paddingBottom: 15, 
+    elevation: 4, 
+    width: "100%", 
     marginBottom: 20,
   },
-  backButton: {
-    padding: 5,
-    marginRight: 10,
-  },
-  backIcon: {
-    width: 30,
-    height: 30,
-    tintColor: "#512DA8",
-  },
-  screenTitle: {
-    fontSize: 20,
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
+  backButton: { 
+    padding: 0, 
+    marginRight: 0 // Neutralized so it doesn't add extra unseen space
+  }, 
+  backIcon: { 
+    width: 24, 
+    height: 24, 
+    tintColor: "#512DA8", 
+    resizeMode: 'contain' 
+  }, 
+  screenTitle: { 
+    fontSize: 18, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    marginLeft: 15 // Added to exactly match the other screens
   },
 
   // --- Warning Box ---
   warningBox: {
-    flexDirection: "row",
     backgroundColor: "#FFFFFF",
     borderRadius: 10,
     padding: 15,
     marginBottom: 5,
-    alignItems: "flex-start",
+    flexDirection: "column",
+    alignItems: "center",
     width: "90%",
   },
   warningIcon: {
     width: 20,
     height: 20,
-    marginRight: 10,
-    marginTop: 2,
+    marginBottom: 10, 
   },
   warningText: {
-    flex: 1,
     fontSize: 14,
     color: "#512DA8",
     textAlign: "center",
     fontFamily: "Quicksand-Regular",
   },
 
-  // --- Tabs ---
   tabsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom:5,
-    marginTop: 10,
-    paddingHorizontal: 0,
-  },
-
-  // --- Step Bubbles (The Complex Card Structure) ---
-  stepsContainer: {
+    flexDirection: "row", 
+    justifyContent: "space-between", 
     width: "100%",
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: 10, 
+    marginTop: 10, 
   },
+  tabButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 10,
+    marginHorizontal: 3,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E3F9',
+  },
+  activeTabButton: {
+    backgroundColor: '#7B61FF',
+    borderColor: '#7B61FF',
+  },
+  tabText: {
+    fontSize: 12,
+    fontFamily: 'Quicksand-Bold',
+    color: '#512DA8',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
+  },
+
+  stepsContainer: { width: "100%", marginBottom: 5, marginTop: 10 },
   stepCardBase: {
-    // 💡 Outer Card: Base structure, corner radius, and uplifted shadow
-    width: "90%",
-    borderRadius: 15,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 6,
-    backgroundColor: "#D7D9F4", // Light background color of the overall app
+    width: "90%", borderRadius: 15, overflow: "hidden",
+    shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25, shadowRadius: 5, elevation: 6,
+    backgroundColor: "#D7D9F4", 
   },
-  stepBubbleContainer: {
-    width: "80%",
-    marginBottom: 30,
-  },
-  stepBubble: {
-    alignSelf: "flex-start",
-  },
-  stepBubbleRight: {
-    alignSelf: "flex-end",
-  },
+  stepBubbleContainer: { width: "80%", marginBottom: 30 },
+  stepBubble: { alignSelf: "flex-start" },
+  stepBubbleRight: { alignSelf: "flex-end" },
 
-  // 1. Gradient Header Section
-  stepHeaderGradient: {
-    height: 50, // Increased height for better icon centering/spacing
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepIcon: {
-    width: 20, 
-    height: 20,
-    tintColor: "#FFFFFF",
-  },
+  stepHeaderGradient: { height: 50, alignItems: "center", justifyContent: "center" },
+  stepEmoji: { fontSize: 22 },
 
-  // 2. Text Body Section
-  stepBody: {
-    backgroundColor: "#D7D9F4",
-    paddingHorizontal: 15,
-    paddingBottom: 15,
-    paddingTop: 10,
-  },
-  stepTextBody: {
-    fontSize: 16,
-    color: "#000",
-    fontFamily: "Quicksand-Medium",
-    textAlign: "center",
-    lineHeight: 20,
-  },
+  stepBody: { backgroundColor: "#D7D9F4", paddingHorizontal: 15, paddingBottom: 15, paddingTop: 10 },
+  stepTextBody: { fontSize: 13, color: "#000", fontFamily: "Quicksand-Medium", textAlign: "justify", lineHeight: 20 },
+  
   gradient: {
-    height: 50,
-    width: "90%",
-    paddingVertical: 10, // Re-added padding visually
-    borderRadius: 10, // Matches the outer container radius
-    alignItems: "center",
-    justifyContent: "center",
+    height: 50, width: "90%", paddingVertical: 10, borderRadius: 10, alignItems: "center", justifyContent: "center",
   },
-
   buttonContent: {
-    flexDirection: "row", // Aligns icon and text horizontally
-    alignItems: "center", // Centers icon and text vertically
-    justifyContent: "center", // Centers the whole content block horizontally inside the gradient
-    paddingHorizontal: 15, // Add some internal padding
-    // borderWidth:1,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 15,
   },
-
-  buttonArrowIcon: {
-    width: 18,
-    height: 18,
-    marginRight: 8, // Space between arrow and text
-  },
+  buttonArrowIcon: { width: 18, height: 18, marginRight: 8 },
   tryButton: {
-    width: 250, // Fixed width
-    borderRadius: 25, // Outer radius for the button wrapper
-    marginBottom: 30,
-    alignSelf: "center",
-    marginTop: 10,
-    alignItems: "center",
+    width: 250, borderRadius: 25, marginBottom: 30, alignSelf: "center", marginTop: 10, alignItems: "center",
   },
-  tryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Quicksand-SemiBold",
-  },
+  tryButtonText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Quicksand-SemiBold" },
 });
 
 export default GeneralRecommendation1;

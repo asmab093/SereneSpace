@@ -1,3 +1,6 @@
+const dns = require('node:dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']); // Force Google DNS to resolve MongoDB Atlas
+const moodRoutes = require('./routes/moodRoutes.js');
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -25,7 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
-
+app.use('/api/mood', moodRoutes);
 // 4. Test Route (The "Connectivity Test" endpoint)
 app.get('/api/test', (req, res) => {
     res.status(200).json({ 

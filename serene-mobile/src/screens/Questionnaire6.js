@@ -1,4 +1,4 @@
-// Depression Dimension
+// Social / Connection
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, ScrollView, Alert, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -8,14 +8,13 @@ import QuestionnaireNavButton from "../components/QuestionnaireNavButton";
 const CheckMoodIcon = require("../assets/CheckMoodIcon.png");
 const screenWidth = Dimensions.get('window').width;
 
-const Questionnaire3 = ({ navigation, route }) => {
-  const { q1, q2 } = route.params;
+const Questionnaire6 = ({ navigation, route }) => {
+  const { q1, q2, q3, q4, q5 } = route.params;
   const [selectedAnswer, setSelectedAnswer] = useState(null);
 
   const handleNext = () => {
     if (selectedAnswer !== null) {
-      // Passing existing scores + new q3 score
-      navigation.navigate("Questionnaire4", { q1, q2, q3: selectedAnswer });
+      navigation.navigate("Questionnaire7", { q1, q2, q3, q4, q5, q6: selectedAnswer });
     } else {
       Alert.alert("Selection Required", "Please select an option.");
     }
@@ -24,11 +23,9 @@ const Questionnaire3 = ({ navigation, route }) => {
   return (
     <LinearGradient colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
         <View style={styles.progressHeader}>
-          {/* Progress 2/6 ≈ 0.33 */}
           <Progress.Bar 
-            progress={0.33} 
+            progress={0.83} 
             width={screenWidth * 0.8} 
             color="#7E57C2" 
             unfilledColor="rgba(255, 255, 255, 0.3)" 
@@ -40,10 +37,10 @@ const Questionnaire3 = ({ navigation, route }) => {
         </View>
 
         <Image source={CheckMoodIcon} style={styles.headerIllustration} resizeMode="contain" />
-        <Text style={styles.screenTitle}>Check your Mood</Text>
+        <Text style={styles.screenTitle}>Almost there!</Text>
         
         <View style={styles.questionCard}>
-          <Text style={styles.questionText}>Q3. I felt positive and hopeful about my day.</Text>
+          <Text style={styles.questionText}>Q6. I felt connected to and supported by others.</Text>
           <View style={styles.optionsContainer}>
              {[-2, -1, 0, 1, 2].map((val) => (
                <TouchableOpacity 
@@ -120,4 +117,4 @@ const styles = StyleSheet.create({
   loaderContainer: { width: 100, alignItems: "center" } // Only used in Q7, but harmless to have in all
 });
 
-export default Questionnaire3;
+export default Questionnaire6;

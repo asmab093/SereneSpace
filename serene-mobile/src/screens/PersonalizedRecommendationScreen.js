@@ -1,176 +1,137 @@
-import React from "react";
-import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,Dimensions,} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Dimensions, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import axios from 'axios';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BASE_URL } from '../api/config';
 
-// Asset Imports
-const BackIcon = require("../assets/BackIcon.png");
-const FlowerIcon = require("../assets/SunflowerIcon.png");
+const SunflowerIcon = require("../assets/SunflowerIcon.png");
 const WarningIcon = require("../assets/WarningIcon.png");
-const CloudIcon = require("../assets/YogaIcon.png");
-const SunIcon = require("../assets/flower.png");
-const JournalIcon = require("../assets/JournalIcon.png");
-const MOOD_GRADIENT_COLORS = ["#7B61FF", "#78469A"];
+const BackIcon = require("../assets/BackIcon.png");
 
-const screenWidth = Dimensions.get("window").width;
+const PersonalizedRecommendationsScreen = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
+  // If stats are locked, this array comes in as empty []
+  const recommendations = route.params?.recommendations || [];
+  const [dailyTip, setDailyTip] = useState("Loading tip...");
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-// --- Dummy Data ---
-const RECOMMENDATION_CARDS = [
-  {
-    id: 1,
-    icon: CloudIcon,
-    title: "Midweek Reset Breaks",
-    text: "Take short 5-10 minute breathing or stretching breaks during Tuesday-Thursday to release stress and prevent emotional build-up.",
-  },
-  {
-    id: 2,
-    icon: SunIcon,
-    title: "Bring Weekend Joy to Weekdays",
-    text: "Identify what made you feel relaxed and happy on the weekend, and bring a small piece of it into your weekday—like music, walking, or hobbies.",
-  },
-  {
-    id: 3,
-    icon: JournalIcon,
-    title: "Journaling Habit",
-    text: "Spend 5 minutes each evening writing down your thoughts or any lingering feelings to clear your mind before sleep.",
-  },
-];
+  useEffect(() => {
+    const fetchTip = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/mood/daily-tip`);
+        if (res.data && res.data.text) setDailyTip(res.data.text);
+      } catch (err) {
+        setDailyTip("Unclench your jaw and drop your shoulders. 🧘");
+      }
+    };
+    fetchTip();
+  }, []);
 
-// 💡 navigation is the primary prop
-const PersonalizedRecommendationsScreen = ({ navigation }) => {
-  const RecommendationCard = ({ data }) => (
-    <LinearGradient
-      colors={["#7B61FF", "#78469A"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.recommendationCard}
-    >
-      <View style={styles.cardHeader}>
-        <Image
-          source={data.icon}
-          style={styles.cardIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.cardTitle}>{data.title}</Text>
-      </View>
-      <Text style={styles.cardText}>{data.text}</Text>
-    </LinearGradient>
-  );
+  const getRecEmoji = (title) => {
+    const text = title?.toLowerCase() || "";
+    if (text.includes("movement") || text.includes("walk")) return "🧘‍♀️";
+    if (text.includes("joy") || text.includes("weekend")) return "🪷";
+    if (text.includes("breathing") || text.includes("reset") || text.includes("neutral")) return "🧘";
+    return "✨";
+  };
+
+  const handleNext = () => {
+    if (currentIndex < recommendations.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const currentItem = recommendations[currentIndex];
 
   return (
-    <LinearGradient
-      colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Image
-            source={BackIcon}
-            style={styles.backIcon}
-            resizeMode="contain"
-          />
+    <LinearGradient colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]} style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={BackIcon} style={styles.backIconStyle} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Personalized Recommendations</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.tipBox}>
-          <View style={styles.tipHeader}>
-            <Image
-              source={FlowerIcon}
-              style={styles.tipIcon}
-              resizeMode="contain"
-            />
-            <Text style={styles.tipHeaderTitle}>Tip of the day</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.tipCard}>
+          <Image source={SunflowerIcon} style={styles.sunflower} />
+          <Text style={styles.tipTitle}>Tip of the day</Text>
+          <Text style={styles.tipText}>{dailyTip}</Text>
+        </View>
+
+        <View style={styles.mainContentArea}>
+          <Image source={WarningIcon} style={styles.alertIcon} />
+          <Text style={styles.subText}>
+            Based on your weekly mood insights, here’s what may help you feel balanced and supported 🌸
+          </Text>
+
+          {/* ✅ UPDATED: Logic to show recommendations or a Locked Message */}
+          {recommendations.length > 0 ? (
+            <View style={styles.carouselWrapper}>
+              
+              <TouchableOpacity 
+                onPress={handlePrev} 
+                disabled={currentIndex === 0}
+                style={[styles.navArrow, currentIndex === 0 && { opacity: 0.3 }]}
+              >
+                <Text style={styles.arrowText}>{"<"}</Text>
+              </TouchableOpacity>
+
+              <View style={styles.recCard}>
+                <View style={styles.recCardHeader}>
+                  <Text style={styles.recCardHeaderTitle} numberOfLines={1}>
+                    {getRecEmoji(currentItem.title)} {currentItem.title}
+                  </Text>
+                </View>
+                <View style={styles.recCardBody}>
+                  <Text style={styles.recDesc}>{currentItem.description}</Text>
+                </View>
+                <View style={styles.pageIndicator}>
+                    <Text style={styles.pageText}>{currentIndex + 1} / {recommendations.length}</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity 
+                onPress={handleNext} 
+                disabled={currentIndex === recommendations.length - 1}
+                style={[styles.navArrow, currentIndex === recommendations.length - 1 && { opacity: 0.3 }]}
+              >
+                <Text style={styles.arrowText}>{">"}</Text>
+              </TouchableOpacity>
+
+            </View>
+          ) : (
+            /* ✅ NEW: Locked State View */
+            <View style={styles.emptyContainer}>
+              <Text style={styles.lockEmoji}>🔒</Text>
+              <Text style={styles.emptyTextHeader}>Recommendations Locked</Text>
+              <Text style={styles.emptyText}>Log your mood for at least 5 days to unlock personalized insights! 🌟</Text>
+            </View>
+          )}
+
+          <View style={styles.guideContainer}>
+            <Text style={styles.guideText}>Want more ideas? Try our Recommendation Guide 🌱</Text>
+            <TouchableOpacity style={styles.tryBtn} onPress={() => navigation.navigate("GeneralRecs")}>
+              <Text style={styles.tryText}>Try Now</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.tipText}>
-            Take a 5-minutes breathing break!🌿
-          </Text>
         </View>
 
-        <View style={styles.insightBox}>
-          <Image
-            source={WarningIcon}
-            style={styles.resourceWarningIcon}
-            resizeMode="contain"
-          />
-          <Text style={styles.insightText}>
-            Based on your weekly mood insights, here's what may help you feel
-            relaxed and supported 🌸
-          </Text>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.cardScrollArea}
-        >
-          {RECOMMENDATION_CARDS.map((card) => (
-            <RecommendationCard key={card.id} data={card} />
-          ))}
-        </ScrollView>
-
-        <Text style={styles.guideText}>
-          Want more ideas? Try our Recommendation Guide 🌱
-        </Text>
-
-        <TouchableOpacity
-          style={styles.tryNowButton}
-          // {/* ✅ FIXED: Navigate to Recommendation Guide */}
-          onPress={() => navigation.navigate("GeneralRecs")}
-        >
-          <Text style={styles.tryNowButtonText}>Try Now</Text>
-        </TouchableOpacity>
-
-        <LinearGradient
-          colors={["#cacdf3ff", "#E8E3F9", "#F4F3FF"]}
-          style={styles.resourcesPanel}
-        >
-          <Image
-            source={WarningIcon}
-            style={styles.resourceWarningIcon}
-            resizeMode="contain"
-          />
-          <Text style={styles.resourcesHeader}>
-            If you're struggling, here are resources:
-          </Text>
-
-          <TouchableOpacity
-            style={[styles.buttonWrapper]}
-            // {/* ✅ FIXED: Navigate to ChatBot */}
-            onPress={() => navigation.navigate("ChatBot")}
-          >
-            <LinearGradient
-              colors={MOOD_GRADIENT_COLORS}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.gradient}
-            >
-              <Text style={styles.resourceButtonText}>Chatbot therapy</Text>
-            </LinearGradient>
+        <LinearGradient colors={["#D7D9F4", "#B39DDB"]} style={styles.resourceSection}>
+          <Image source={WarningIcon} style={styles.alertIcon} />
+          <Text style={styles.resourceHeader}>If you're struggling, here are resources:</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate("ChatBot")}>
+            <Text style={styles.actionBtnText}>Chatbot therapy</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.buttonWrapper]}
-            // {/* ✅ FIXED: Navigate to CrisisSupport with professional tab param */}
-            onPress={() =>
-              navigation.navigate("CrisisSupport", { tab: "professional" })
-            }
-          >
-            <LinearGradient
-              colors={MOOD_GRADIENT_COLORS}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.gradient}
-            >
-              <Text style={styles.resourceButtonText}>
-                Find professional help
-              </Text>
-            </LinearGradient>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate("CrisisSupport")}>
+            <Text style={styles.actionBtnText}>Find professional help</Text>
           </TouchableOpacity>
         </LinearGradient>
       </ScrollView>
@@ -180,210 +141,80 @@ const PersonalizedRecommendationsScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  // Gradient Button Styles
-  buttonWrapper: {
-    width: "70%",
-    marginTop: 10,
-    alignSelf: "center",
+  scrollContent: { paddingBottom: 20 },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    backgroundColor: "#FFFFFF", 
+    paddingBottom: 15, 
+    elevation: 4, 
+    width: '100%' 
   },
-  // --- Header ---
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    // justifyContent: "space-between",
-    paddingTop: 40,
-    paddingHorizontal: 15,
-    backgroundColor: "#FFFFFF",
-    paddingBottom: 10,
-    // borderWidth:1
+  backIconStyle: { 
+    width: 24, 
+    height: 24, 
+    tintColor: '#512DA8', 
+    resizeMode: 'contain' 
   },
-  backButton: { padding: 5, paddingLeft: 0, paddingRight: 0 },
-  backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
-  headerTitle: {
-    fontSize: 20,
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
-    // marginLeft: 10,
+  headerTitle: { 
+    fontSize: 18, 
+    color: '#512DA8', 
+    fontFamily: 'Quicksand-Bold', 
+    marginLeft: 15 
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    alignItems: "center",
-  },
-  gradient: {
-    height: 45,
-    width: "100%",
-    paddingVertical: 0,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // --- Tip of the Day ---
-  tipBox: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 15,
-    alignItems: "center",
-    marginBottom: 20,
-    width: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  tipHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  tipIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 5,
-  },
-  tipHeaderTitle: {
-    fontSize: 14,
-    color: "#512DA8",
-    fontFamily: "Quicksand-SemiBold",
-  },
-  tipText: {
-    fontSize: 18,
-    // fontWeight: "bold",
-    textAlign: "center",
-    fontFamily: "Quicksand-Bold",
-    color: "#333",
-  },
-  tipBreathingIcon: {
-    width: 20,
-    height: 20,
-    marginLeft: 5,
-  },
+  tipCard: { backgroundColor: '#FFF', margin: 20, borderRadius: 20, padding: 15, alignItems: 'center', elevation: 3 },
+  sunflower: { width: 30, height: 30, marginBottom: 5 },
+  tipTitle: { fontFamily: 'Quicksand-Bold', color: '#512DA8', fontSize: 16 },
+  tipText: { fontFamily: 'Quicksand-Medium', color: '#444', textAlign: 'center', marginTop: 5 },
+  
+  mainContentArea: { alignItems: 'center', width: '100%' },
+  alertIcon: { width: 24, height: 24, marginBottom: 10 },
+  subText: { textAlign: 'center', color: '#512DA8', fontFamily: 'Quicksand-SemiBold', marginBottom: 20, paddingHorizontal: 40 },
 
-  // --- Insight Text ---
-  insightBox: {
-    flexDirection: "column",
-    alignItems: "center",
-    marginBottom: 20,
-    width: "100%",
-    justifyContent: "center",
-    // borderWidth:1,
+  carouselWrapper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', paddingHorizontal: 10 },
+  navArrow: { padding: 15, backgroundColor: '#9575CD', borderRadius: 50, elevation: 2 },
+  arrowText: { color: '#FFF', fontSize: 20, fontWeight: 'bold' },
+  
+  recCard: { 
+    width: 240, 
+    height: 220, 
+    borderRadius: 25, 
+    marginHorizontal: 10, 
+    overflow: 'hidden', 
+    elevation: 3,
+    backgroundColor: '#E8E3F9',
   },
-  insightIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-    // borderWidth:1,
-    // tintColor: '#9370DB',
-  },
-  insightText: {
-    fontSize: 14,
-    color: "#333",
-    fontFamily: "Quicksand-Regular",
-    textAlign: "center",
-    maxWidth: "80%",
-  },
+  recCardHeader: { backgroundColor: '#9575CD', padding: 15 },
+  recCardHeaderTitle: { color: '#FFF', fontFamily: 'Quicksand-Bold', fontSize: 14 },
+  recCardBody: { padding: 15, flex: 1 },
+  recDesc: { color: '#444', fontSize: 14, fontFamily: 'Quicksand-Medium', lineHeight: 18 },
+  pageIndicator: { alignSelf: 'center', paddingBottom: 10 },
+  pageText: { fontSize: 10, color: '#9575CD', fontFamily: 'Quicksand-Bold' },
 
-  // --- Horizontally Scrollable Cards ---
-  cardScrollArea: {
-    paddingHorizontal: 5,
-    marginBottom: 25,
+  guideContainer: { alignItems: 'center', marginTop: 30 },
+  guideText: { color: '#512DA8', fontFamily: 'Quicksand-Bold', marginBottom: 15, fontSize: 14 },
+  tryBtn: { backgroundColor: '#7B61FF', paddingHorizontal: 35, paddingVertical: 12, borderRadius: 12 },
+  tryText: { color: '#FFF', fontFamily: 'Quicksand-Bold', fontSize: 16 },
+  
+  resourceSection: { marginTop: 30, padding: 30, borderTopLeftRadius: 40, borderTopRightRadius: 40, alignItems: 'center' },
+  resourceHeader: { color: '#512DA8', fontFamily: 'Quicksand-Bold', marginBottom: 20, fontSize: 16 },
+  actionBtn: { backgroundColor: '#7B61FF', width: '90%', padding: 15, borderRadius: 18, marginBottom: 15, alignItems: 'center' },
+  actionBtnText: { color: '#FFF', fontFamily: 'Quicksand-Bold', fontSize: 16 },
+  
+  // ✅ NEW STYLES FOR LOCKED STATE
+  emptyContainer: { 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: 200, 
+    paddingHorizontal: 40,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderRadius: 30,
+    marginHorizontal: 20
   },
-  recommendationCard: {
-    width: screenWidth * 0.45, // About half the screen width
-    marginHorizontal: 10,
-    borderRadius: 15,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  cardIcon: {
-    width: 30,
-    height: 30,
-    marginRight: 8,
-  },
-  cardTitle: {
-    fontSize: 14,
-    color: "#FFFFFF",
-    fontFamily: "Quicksand-Bold",
-    flexShrink: 1,
-  },
-  cardText: {
-    fontSize: 12,
-    color: "#FFFFFF",
-    fontFamily: "Quicksand-Regular",
-    lineHeight: 16,
-  },
-
-  // --- Guide Link / Try Now Button ---
-  guideText: {
-    fontSize: 16,
-    color: "#333",
-    fontFamily: "Quicksand-SemiBold",
-    marginBottom: 7,
-    textAlign: "center",
-  },
-  tryNowButton: {
-    backgroundColor: "#835ed8ff",
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 35,
-    marginBottom: 40,
-  },
-  tryNowButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Quicksand-Bold",
-  },
-
-  // --- Resources Panel ---
-  resourcesPanel: {
-    width: "100%",
-    borderRadius: 15,
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 30,
-  },
-
-  resourcesHeader: {
-    fontSize: 16,
-    color: "#512DA8",
-    fontFamily: "Quicksand-SemiBold",
-    textAlign: "center",
-    marginBottom: 15,
-  },
-  resourceWarningIcon: {
-    width: 25,
-    height: 25,
-    marginBottom: 5,
-  },
-  resourceButton: {
-    width: "75%",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
-    borderWidth: 1,
-    height: 20,
-  },
-  resourceButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Quicksand-SemiBold",
-  },
+  lockEmoji: { fontSize: 40, marginBottom: 10 },
+  emptyTextHeader: { fontFamily: 'Quicksand-Bold', color: '#512DA8', fontSize: 18, marginBottom: 5 },
+  emptyText: { fontFamily: 'Quicksand-Medium', color: '#7B61FF', textAlign: 'center', lineHeight: 20 }
 });
 
 export default PersonalizedRecommendationsScreen;
