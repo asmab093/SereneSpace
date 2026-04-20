@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Alert, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import OptionButton from "../components/OptionButton";
 import QuestionnaireNavButton from "../components/QuestionnaireNavButton";
 
 const CheckMoodIcon = require("../assets/CheckMoodIcon.png");
@@ -14,11 +13,11 @@ const Questionnaire1 = ({ navigation }) => {
 
   // Unified answer options for all questionnaire screens
   const answerOptions = [
-    { label: "Strongly Disagree", value: -2 },
-    { label: "Slightly Disagree", value: -1 },
-    { label: "Neutral", value: 0 },
-    { label: "Slightly Agree", value: 1 },
-    { label: "Strongly Agree", value: 2 },
+    { label: "🔮 Strongly Disagree", value: -2 },
+    { label: "🔮 Slightly Disagree", value: -1 },
+    { label: "🔮 Neutral", value: 0 },
+    { label: "🔮 Slightly Agree", value: 1 },
+    { label: "🔮 Strongly Agree", value: 2 },
   ];
 
   const handleNext = () => {
@@ -41,8 +40,6 @@ const Questionnaire1 = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Progress bar removed for Screen 1 as requested */}
-
         <Image source={CheckMoodIcon} style={styles.headerIllustration} resizeMode="contain" />
         <Text style={styles.screenTitle}>Check your Mood</Text>
         
@@ -52,15 +49,17 @@ const Questionnaire1 = ({ navigation }) => {
             Q1. I felt energetic and motivated to complete my tasks today.
           </Text>
           <View style={styles.optionsContainer}>
+            {/* ✅ Replaced OptionButton with standardized TouchableOpacity mapping */}
             {answerOptions.map((option) => (
-              <OptionButton 
+              <TouchableOpacity 
                 key={option.value} 
-                label={option.label} 
-                value={option.value} 
-                iconSource={null} 
-                selectedValue={selectedAnswer} 
-                onSelect={setSelectedAnswer} 
-              />
+                style={[styles.option, selectedAnswer === option.value && styles.selectedOption]} 
+                onPress={() => setSelectedAnswer(option.value)}
+              >
+                <Text style={[styles.optionText, selectedAnswer === option.value && styles.selectedOptionText]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -80,15 +79,15 @@ const styles = StyleSheet.create({
     flexGrow: 1, 
     alignItems: "center", 
     paddingHorizontal: 25, 
-    paddingTop: 10, // ✅ Reduced from 30 to move the 'X' up
-    paddingBottom: 40 // ✅ Added safe space at the bottom
+    paddingTop: 50, // ✅ Increased to 50 to safely clear the notch/status bar
+    paddingBottom: 40 
   },
   topBar: { 
     flexDirection: "row", 
     justifyContent: "flex-start", 
     width: "100%", 
     marginBottom: 10, 
-    marginTop: 5 // ✅ Reduced from 20 to move the 'X' up
+    marginTop: 0 // ✅ Set to 0 since paddingTop now handles the spacing
   },
   closeButton: { padding: 5, paddingLeft: 0 },
   closeIcon: { width: 25, height: 25, tintColor: "#555" },
@@ -108,11 +107,27 @@ const styles = StyleSheet.create({
     marginTop: 10 
   },
   questionText: { 
-    fontSize: 18, 
+    fontSize: 16, 
     color: "#333", 
     fontFamily: "Quicksand-SemiBold", 
     marginBottom: 20 
   },
+  
+  // ✅ Added standardized option styles from Q2-Q7 to ensure left-alignment and purple highlights
+  optionsContainer: { width: "100%" },
+  option: { 
+    padding: 10, 
+    borderRadius: 10, 
+    backgroundColor: "#F8F9FE", 
+    marginBottom: 10, 
+    borderWidth: 1, 
+    borderColor: "#E8E3F9",
+    alignItems: "flex-start" // Ensures left alignment
+  },
+  selectedOption: { backgroundColor: "#E8E3F9", borderColor: "#7E57C2" },
+  optionText: { fontSize: 14, color: "#555", fontFamily: "Quicksand-Medium" },
+  selectedOptionText: { color: "#512DA8", fontFamily: "Quicksand-Bold" },
+  
   bottomButtons: { 
     flexDirection: "row", 
     justifyContent: "space-between", 

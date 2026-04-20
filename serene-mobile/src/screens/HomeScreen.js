@@ -439,7 +439,8 @@ smallCardHeader: {
     textAlign: "center",
   },
  smallCardSubText: {
-    fontSize: 11, // Slightly smaller to fit the longer text
+    fontSize: 12, // Slightly smaller to fit the longer text
+    marginTop: 5,
     color: "#555",
     fontFamily: "Quicksand-Regular",
     textAlign: "center",
@@ -532,7 +533,7 @@ smallCardHeader: {
     width: '85%', 
     backgroundColor: '#FFF', 
     borderRadius: 25, 
-    padding: 30, 
+    padding: 25, 
     alignItems: 'center',     // Centers children (title, message, button)
     elevation: 10 
   },
@@ -548,7 +549,7 @@ smallCardHeader: {
     color: '#444', 
     textAlign: 'center',      // ✅ This specifically centers the text lines
     lineHeight: 22, 
-    marginBottom: 25 
+    marginBottom: 10 
   },
   alertButton: { 
     backgroundColor: '#7B61FF', 

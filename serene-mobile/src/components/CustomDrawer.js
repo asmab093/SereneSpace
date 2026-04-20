@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     zIndex: 11,
   },
   headerSection: {
-    height: 220,
+    height: 180,
     backgroundColor: "#F7F4FD",
     paddingTop: 50,
     paddingHorizontal: 20,
@@ -214,14 +214,14 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 30,
+    top: 10,
     right: 10,
     padding: 10,
     zIndex: 12,
   },
   closeIcon: {
-    width: 30,
-    height: 30,
+    width: 25,
+    height: 25,
     tintColor: "#512DA8",
   },
   profileInfo: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   greetingText: {
-    marginTop: -30,
+    marginTop: -60,
     fontSize: 22,
     // fontWeight: "bold",
     color: "#512DA8",

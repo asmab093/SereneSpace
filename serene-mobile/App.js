@@ -8,6 +8,7 @@ import { createStackNavigator, CardStyleInterpolators } from "@react-navigation/
 import { AuthProvider, AuthContext } from "./src/context/AuthContext"; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
+import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 
 // --- SCREEN IMPORTS ---
 import SplashScreen from "./src/screens/SplashScreen";
@@ -220,6 +221,7 @@ const AppMain = () => {
           <Stack.Screen name="SignIn" component={SignInScreen} />
           <Stack.Screen name="AuthSuccess" component={AuthSuccessScreen} />
           <Stack.Screen name="AddContact" component={AddContactScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
 
           {/* Main App */}
           <Stack.Screen name="Home" component={HomeScreen} />

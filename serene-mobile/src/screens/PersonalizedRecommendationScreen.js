@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   pageText: { fontSize: 10, color: '#9575CD', fontFamily: 'Quicksand-Bold' },
 
   guideContainer: { alignItems: 'center', marginTop: 30 },
-  guideText: { color: '#512DA8', fontFamily: 'Quicksand-Bold', marginBottom: 15, fontSize: 14 },
+  guideText: { color: '#512DA8', fontFamily: 'Quicksand-Bold', marginBottom: 15, fontSize: 14, paddingHorizontal: 20,textAlign: 'center' },
   tryBtn: { backgroundColor: '#7B61FF', paddingHorizontal: 35, paddingVertical: 12, borderRadius: 12 },
   tryText: { color: '#FFF', fontFamily: 'Quicksand-Bold', fontSize: 16 },
   

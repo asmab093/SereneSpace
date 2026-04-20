@@ -243,8 +243,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 40,
-    paddingHorizontal: 15,
+    paddingTop: 10,
+    paddingHorizontal: 20,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     tintColor: "#512DA8",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
     marginLeft: 15,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,

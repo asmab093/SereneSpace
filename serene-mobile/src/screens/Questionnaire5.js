@@ -53,7 +53,7 @@ const Questionnaire5 = ({ navigation, route }) => {
                   onPress={() => setSelectedAnswer(val)}
                >
                  <Text style={[styles.optionText, selectedAnswer === val && styles.selectedOptionText]}>
-                    {val === -2 ? "Strongly Disagree" : val === 2 ? "Strongly Agree" : val === -1 ? "Slightly Disagree" : val === 1 ? "Slightly Agree" : "Neutral"}
+                    {val === -2 ? "🔮 Strongly Disagree" : val === 2 ? "🔮 Strongly Agree" : val === -1 ? "🔮 Slightly Disagree" : val === 1 ? "🔮 Slightly Agree" : "🔮 Neutral"}
                  </Text>
                </TouchableOpacity>
             ))}
@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
     flexGrow: 1, 
     alignItems: "center", 
     paddingHorizontal: 25, 
-    paddingTop: 15, // ✅ Matches the new higher alignment
-    paddingBottom: 40 // ✅ Guarantees the buttons never touch the screen edge
+    paddingTop: 50, // ✅ Increased to 50 to safely clear the notch/status bar
+    paddingBottom: 40 
   },
   progressHeader: { 
-    marginTop: 15, // ✅ REDUCED FROM 60! This was the culprit pushing buttons off screen.
+    marginTop: 15, // ✅ Set to 0 since paddingTop now handles the spacing
     marginBottom: 15 
   },
   headerIllustration: { width: "70%", height: 130, marginBottom: 10 },
@@ -96,10 +96,10 @@ const styles = StyleSheet.create({
     width: "100%", 
     elevation: 3 
   },
-  questionText: { fontSize: 18, color: "#333", fontFamily: "Quicksand-SemiBold", marginBottom: 20 },
+  questionText: { fontSize: 16, color: "#333", fontFamily: "Quicksand-SemiBold", marginBottom: 20 },
   optionsContainer: { width: "100%" },
   option: { 
-    padding: 15, 
+    padding: 10, 
     borderRadius: 10, 
     backgroundColor: "#F8F9FE", 
     marginBottom: 10, 
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     borderColor: "#E8E3F9" 
   },
   selectedOption: { backgroundColor: "#E8E3F9", borderColor: "#7E57C2" },
-  optionText: { fontSize: 16, color: "#555", fontFamily: "Quicksand-Medium" },
+  optionText: { fontSize: 14, color: "#555", fontFamily: "Quicksand-Medium" },
   selectedOptionText: { color: "#512DA8", fontFamily: "Quicksand-Bold" },
   
   bottomButtons: { 

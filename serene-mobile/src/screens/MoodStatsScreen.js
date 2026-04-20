@@ -23,13 +23,15 @@ const MoodStatsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [timeframe, setTimeframe] = useState("thisWeek");
+  
   const getMoodColor = (moodName) => {
-  const m = moodName.toLowerCase();
-  if (m.includes("happy") || m.includes("content") || m.includes("excited") || m.includes("joyful")) return "#FFA500";
-  if (m.includes("sad") || m.includes("low") || m.includes("lonely")) return "#76d1f5";
-  if (m.includes("neutral") || m.includes("okay")) return "#808080";
-  return "#FF0000"; // Red for everything else
-};
+    if (!moodName) return "#808080";
+    const m = moodName.toLowerCase();
+    if (m.includes("happy") || m.includes("content") || m.includes("excited") || m.includes("joyful")) return "#FFA500";
+    if (m.includes("sad") || m.includes("low") || m.includes("lonely")) return "#76d1f5";
+    if (m.includes("neutral") || m.includes("okay")) return "#808080";
+    return "#FF0000"; 
+  };
 
   useEffect(() => {
     fetchStats();
@@ -38,7 +40,6 @@ const MoodStatsScreen = ({ navigation }) => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      // Passing timeframe as a query parameter to the backend
       const response = await axios.get(`${BASE_URL}/api/mood/insights?timeframe=${timeframe}`, {
         headers: { Authorization: `Bearer ${token}` } 
       });
@@ -57,29 +58,27 @@ const MoodStatsScreen = ({ navigation }) => {
       const avg = item.averageScore;
       const mood = item.finalMood;
       
-      // Mapping scores to 5 levels for the Y-axis
       let chartValue = 3; 
       if (avg > 1.0) chartValue = 5;      
       else if (avg > 0.3) chartValue = 4; 
       else if (avg >= -0.3) chartValue = 3; 
       else if (avg >= -1.0) chartValue = 2; 
       else chartValue = 1; 
-// Color coding based on mood category
-      let color = "#808080"; // Default Gray (Neutral)
 
-if (mood.includes("Happy") || mood.includes("Content") || mood.includes("Excited") || mood.includes("Joyful")) {
-  color = "#FFA500"; // Yellow
-} else if (mood.includes("Sad") || mood.includes("Low") || mood.includes("Lonely")) {
-  color = "#76d1f5"; // Blue
-} else if (mood.includes("Neutral") || mood.includes("Okay")) {
-  color = "#808080"; // Gray
-} else {
-  color = "#FF0000"; // Red (Distressed/Anxious/Tired etc.)
-}
+      let color = "#808080"; 
+
+      if (mood.includes("Happy") || mood.includes("Content") || mood.includes("Excited") || mood.includes("Joyful")) {
+        color = "#FFA500"; 
+      } else if (mood.includes("Sad") || mood.includes("Low") || mood.includes("Lonely")) {
+        color = "#76d1f5"; 
+      } else if (mood.includes("Neutral") || mood.includes("Okay")) {
+        color = "#808080"; 
+      } else {
+        color = "#FF0000"; 
+      }
 
       return {
         value: chartValue,
-        // Labeling by day name (e.g., Mon, Tue)
         label: new Date(item.createdAt).toLocaleDateString([], { weekday: 'short' }),
         frontColor: color,
       };
@@ -87,7 +86,7 @@ if (mood.includes("Happy") || mood.includes("Content") || mood.includes("Excited
   };
 
   const renderWeeklySummary = () => {
-    if (!stats || stats.locked) {
+    if (!stats || stats.summaryLocked) {
         return (
             <Text style={styles.summaryText}>
                 Keep tracking your mood! You have to log for at least 5 days for your personalized weekly insights to be generated.
@@ -95,22 +94,60 @@ if (mood.includes("Happy") || mood.includes("Content") || mood.includes("Excited
         );
     }
 
-    const mood = stats.dominantMood;
-    let summaryContent = " Consistent tracking is a powerful tool for self-awareness.";
+    // Safely extract the array of winning moods
+    const dominantMoods = stats.dominantMoods || []; 
 
-    if (mood.includes("Happy") || mood.includes("Content")) {
-        summaryContent = " It looks like you've had a balanced and peaceful period. Continue leaning into the healthy routines that brought you this peace.";
-    } else if (mood.includes("Sad") || mood.includes("Low")) {
-        summaryContent = " It's okay to feel low. Remember to be gentle with yourself and lean on your support system.";
-    } else if (mood.includes("Neutral")) {
-        summaryContent = " A neutral week represents a stable baseline. Use this time to maintain your healthy habits.";
+    // ✅ SCENARIO 1: A single dominant mood
+    if (dominantMoods.length === 1) {
+        const mood = dominantMoods[0];
+        let summaryContent = " Consistent tracking is a powerful tool for self-awareness.";
+
+        if (mood.includes("Happy") || mood.includes("Content")) {
+            summaryContent = " It looks like you've had a balanced and peaceful period. Continue leaning into the healthy routines that brought you this peace.";
+        } else if (mood.includes("Sad") || mood.includes("Low")) {
+            summaryContent = " It's okay to feel low. Remember to be gentle with yourself and lean on your support system.";
+        } else if (mood.includes("Neutral")) {
+            summaryContent = " A neutral week represents a stable baseline. Use this time to maintain your healthy habits.";
+        }
+
+        return (
+          <Text style={styles.summaryText}>
+            Based on your logs, your dominant mood was <Text style={[styles.boldMoodText, { color: getMoodColor(mood) }]}>{mood}</Text>.{summaryContent}
+          </Text>
+        );
+    } 
+    
+    // ✅ SCENARIO 2: A tied mixture of moods!
+    else if (dominantMoods.length > 1) {
+        let combinedSummary = " Consistent tracking is a powerful tool for self-awareness.";
+        
+        // Append the specific advice line for each mood they experienced
+        dominantMoods.forEach(mood => {
+            if (mood.includes("Happy") || mood.includes("Content")) {
+                combinedSummary += " It looks like you've had a balanced and peaceful period.";
+            } else if (mood.includes("Sad") || mood.includes("Low")) {
+                combinedSummary += " You also had low days; remember to be gentle with yourself and lean on your support system.";
+            } else if (mood.includes("Neutral")) {
+                combinedSummary += " You've maintained a stable baseline on some days, which is great for healthy habits.";
+            }
+        });
+
+        // Format the colored text variables: e.g., "Happy and Sad"
+        const coloredMoods = dominantMoods.map((m, index) => (
+            <Text key={index}>
+               <Text style={[styles.boldMoodText, { color: getMoodColor(m) }]}>{m}</Text>
+               {index < dominantMoods.length - 1 ? " and " : ""}
+            </Text>
+        ));
+
+        return (
+          <Text style={styles.summaryText}>
+            Based on your logs, your mood was a mixture of {coloredMoods}.{combinedSummary}
+          </Text>
+        );
     }
-
-    return (
-      <Text style={styles.summaryText}>
-        Based on your logs, your dominant mood was <Text style={[styles.boldMoodText, { color: getMoodColor(mood) }]}>{mood}</Text>.{summaryContent}
-      </Text>
-    );
+    
+    return null;
   };
 
   if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#7E57C2" /></View>;
@@ -133,11 +170,13 @@ if (mood.includes("Happy") || mood.includes("Content") || mood.includes("Excited
 
           {/* CHART CARD */}
           <View style={styles.whiteCard}>
-            {stats?.locked ? (
+            {stats?.chartLocked ? (
               <View style={styles.lockContent}>
                 <Text style={styles.lockEmoji}>🔒</Text>
                 <Text style={styles.cardHeader}>Insight Chart Locked</Text>
-                <Text style={styles.lockMessage}>Log at least 5 days to unlock your trends.</Text>
+                <Text style={styles.lockMessage}>
+                  {timeframe === "lastWeek" ? "Not enough data from last week." : "Log your mood today to start your chart!"}
+                </Text>
               </View>
             ) : (
               <View style={styles.chartWrapper}>
@@ -205,7 +244,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15, 
     backgroundColor: '#FFF', 
     width: '100%', 
-    elevation: 4 // Added shadow to match the others
+    elevation: 4 
   },
   backIcon: { 
     width: 24, 

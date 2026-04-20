@@ -1,3 +1,4 @@
+const nodemailer = require("nodemailer"); 
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -193,6 +194,92 @@ exports.updatePassword = async (req, res) => {
     await user.save();
 
     res.status(200).json({ success: true, message: "Password updated!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found with this email" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordOTP = otp;
+    user.resetPasswordExpires = Date.now() + 600000; // 10 mins
+    await user.save({ validateBeforeSave: false });
+
+    // --- EMAIL TRANSPORT SETUP ---
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Serene Space Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your Password Reset OTP",
+      html: `
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                    <h2 style="color: #7E57C2; text-align: center;">Serene Space</h2>
+                    <p>Hi there,</p>
+                    <p>We received a request to reset your password. Use the code below to proceed:</p>
+                    <div style="background-color: #F3E5F5; padding: 20px; text-align: center; border-radius: 8px;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #512DA8;">${otp}</span>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 13px; color: #666;">This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
+                </div>
+            `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "OTP sent to your email!" });
+  } catch (error) {
+    console.error("Mail Error:", error);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to send email. Please try again later.",
+      });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await User.findOne({
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    // Update password (Mongoose middleware will hash this)
+    user.password = newPassword;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successful!" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

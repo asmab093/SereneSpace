@@ -117,15 +117,9 @@ const SignInScreen = ({ navigation }) => {
             <Text style={styles.signUpLink}>Sign up</Text>
           </Text>
         </TouchableOpacity>
+        
 
-        <TouchableOpacity
-          onPress={() =>
-            Alert.alert(
-              "Reset Password",
-              "A recovery link has been sent to your email.",
-            )
-          }
-        >
+        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>

@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15, 
     elevation: 4, 
     width: "100%", 
-    marginBottom: 20,
+    marginBottom: 10,
   },
   backButton: { 
     padding: 0, 
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   warningIcon: {
     width: 20,
     height: 20,
-    marginBottom: 10, 
+    marginBottom: 5, 
   },
   warningText: {
     fontSize: 14,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", 
     justifyContent: "space-between", 
     width: "100%",
-    marginBottom: 10, 
+    marginBottom: 5, 
     marginTop: 10, 
   },
   tabButton: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     borderColor: '#7B61FF',
   },
   tabText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Quicksand-Bold',
     color: '#512DA8',
   },
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25, shadowRadius: 5, elevation: 6,
     backgroundColor: "#D7D9F4", 
   },
-  stepBubbleContainer: { width: "80%", marginBottom: 30 },
+  stepBubbleContainer: { width: "80%", marginBottom: 15 },
   stepBubble: { alignSelf: "flex-start" },
   stepBubbleRight: { alignSelf: "flex-end" },
 
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   buttonArrowIcon: { width: 18, height: 18, marginRight: 8 },
   tryButton: {
-    width: 250, borderRadius: 25, marginBottom: 30, alignSelf: "center", marginTop: 10, alignItems: "center",
+    width: 250, borderRadius: 25, marginBottom: 10, alignSelf: "center", marginTop: 10, alignItems: "center",
   },
   tryButtonText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Quicksand-SemiBold" },
 });
