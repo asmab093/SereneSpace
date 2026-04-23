@@ -1,6 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
-import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,TextInput,KeyboardAvoidingView,Platform,
-} from "react-native";
+import React, { useState, useRef, useEffect, useContext } from "react"; // Added useContext
+import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,TextInput,KeyboardAvoidingView,
+  Platform,} from "react-native";
+import axios from "axios"; // Added axios import
+import { AuthContext } from "../context/AuthContext"; // Added AuthContext import
+import { BASE_URL } from "../api/config"; // Added BASE_URL import
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeFooter from "../components/HomeFooter"; // ⬅️ Add Footer Import
@@ -10,34 +13,6 @@ const BackIcon = require("../assets/BackIcon.png");
 const SendIcon = require("../assets/SendIcon.png"); // Icon for sending messages
 const ChatBotAvatar = require("../assets/ChatbotAvatarIcon.png"); // Placeholder for the bot's avatar
 const MicIcon = require("../assets/MicIcon.png");
-
-// --- Dummy Chat Data ---
-const DUMMY_MESSAGES = [
-  {
-    id: 1,
-    text: "Welcome back! How are you feeling today?",
-    sender: "bot",
-    time: "10:00 AM",
-  },
-  {
-    id: 2,
-    text: "I've been feeling overwhelmed and stressed about work lately.",
-    sender: "user",
-    time: "10:01 AM",
-  },
-  {
-    id: 3,
-    text: "I understand. Stress is common, but let's explore that. Would you like to try a quick breathing exercise?",
-    sender: "bot",
-    time: "10:02 AM",
-  },
-  {
-    id: 4,
-    text: "Yes, please. I need to clear my mind.",
-    sender: "user",
-    time: "10:03 AM",
-  },
-];
 
 // --- Chat Message Component ---
 const ChatMessage = ({ message }) => {
@@ -73,20 +48,78 @@ const ChatMessage = ({ message }) => {
 };
 
 const ChatBotScreen = ({ navigation }) => {
-  const insets = useSafeAreaInsets(); // ⬅️ Handle safe area for footer
+  const insets = useSafeAreaInsets();
+  const { token } = useContext(AuthContext); // Access token from context
   const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState([]); // Start with empty array
+  const [loading, setLoading] = useState(false);
   const scrollViewRef = useRef();
 
-  // Scroll to the bottom when messages load/update
+  //Added useEffect to auto-scroll whenever the messages array changes
+  // Load History on Screen Mount
   useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [DUMMY_MESSAGES]);
+  const fetchHistory = async () => {
+    // 1. Only run if we have a token
+    if (!token) {
+      console.log("🕒 Waiting for token...");
+      return;
+    }
 
-  const handleSend = () => {
-    if (inputText.trim()) {
-      console.log("Sending message: " + inputText);
-      // Future implementation: Add new message to DUMMY_MESSAGES array and clear input
-      setInputText("");
+    try {
+      console.log("🔄 Fetching history from:", `${BASE_URL}/api/chat/history`);
+      
+      const res = await axios.get(`${BASE_URL}/api/chat/history`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache' // Prevent stale data
+        },
+        timeout: 5000 // 5 second timeout
+      });
+
+      if (res.data.success) {
+        setMessages(res.data.history);
+        console.log("✅ History loaded successfully");
+      }
+    } catch (err) {
+      // 2. Log more detail to see exactly why it failed
+      console.error("❌ History Load Details:", err.message);
+      if (err.code === 'ECONNABORTED') console.log("⚠️ Request timed out");
+    }
+  };
+
+  // 3. Give the app 500ms to breathe before fetching
+  const delayDebounceFn = setTimeout(() => {
+    fetchHistory();
+  }, 500);
+
+  return () => clearTimeout(delayDebounceFn);
+}, [token]); // Re-run if token becomes available
+
+  const handleSend = async () => {
+    if (!inputText.trim()) return;
+
+    const userMsg = { id: Date.now(), text: inputText, sender: "user" };
+    setMessages((prev) => [...prev, userMsg]);
+    setInputText("");
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/chat/message`,
+        { message: userMsg.text },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      const botMsg = {
+        id: Date.now() + 1,
+        text: response.data.reply,
+        sender: "bot",
+      };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (error) {
+      console.error("Chat Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,7 +136,7 @@ const ChatBotScreen = ({ navigation }) => {
           end={{ x: 0, y: 1 }}
           style={styles.innerContainer}
         >
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: insets.top }]}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={styles.backButton}
@@ -117,15 +150,15 @@ const ChatBotScreen = ({ navigation }) => {
             <Text style={styles.headerTitle}>Serene Bot</Text>
           </View>
 
-          <ScrollView
-            ref={scrollViewRef}
-            contentContainerStyle={styles.chatContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {DUMMY_MESSAGES.map((msg) => (
+          <ScrollView ref={scrollViewRef}>
+            {messages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
-            <View style={{ height: 10 }} />
+            {loading && (
+              <Text style={{ alignSelf: "center", color: "#888" }}>
+                Bot is thinking...
+              </Text>
+            )}
           </ScrollView>
 
           <View style={styles.inputBar}>
@@ -183,15 +216,14 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
-
   // --- Header ---
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingTop: 40,
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     backgroundColor: "#FFFFFF", // White background
-    paddingBottom: 10,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#EBE5F7",
   },
@@ -217,7 +249,7 @@ const styles = StyleSheet.create({
   messageContainer: {
     flexDirection: "row",
     maxWidth: "85%",
-    marginVertical: 10,
+    marginVertical: 7,
   },
   botMessageContainer: {
     alignSelf: "flex-start",
@@ -271,8 +303,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF", // White background
     borderTopWidth: 1,
     borderTopColor: "#EBE5F7",
-    marginBottom: 30,
-    // height:80,
+    // marginBottom: 30,
   },
   micButton: {
     padding: 5,

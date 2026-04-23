@@ -7,8 +7,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const API_URL = "http://10.94.247.196:5000/api";
-  // const API_URL = "http://10.0.2.2:5000/api"; // Use this for Android emulator
+  const API_URL = "http://10.0.2.2:5000"; // Use this for Android emulator
+  //  = "http://10.94.247.196:5000/api";
+  // const API_URL = "http://192.168.1.11:5000/api"; // Use this for Android emulator
 
   // ✅ HELPER: Check if user is a member of a group
   // Returns true if the groupTitle exists in the user's joinedGroups array
@@ -49,33 +50,37 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleCommunityNavigation = (navigation) => {
-  // iMPROVED LOGIC: Check if the profile exists AND the completion flag is true
-  const isProfileComplete = user?.communityProfile?.hasCompletedProfile === true;
+    // iMPROVED LOGIC: Check if the profile exists AND the completion flag is true
+    const isProfileComplete =
+      user?.communityProfile?.hasCompletedProfile === true;
 
-  if (isProfileComplete) {
-    // Already has a profile? Go to the groups
-    navigation.navigate("CommunityGroups");
-  } else {
-    // New user? Go to profile creation
-    navigation.navigate("CommunityProfileCreation");
-  }
-};
-
-//NEW: Keep AsyncStorage in sync whenever the user object changes
-useEffect(() => {
-  const syncUserToDisk = async () => {
-    if (user) {
-      try {
-        await AsyncStorage.setItem("userData", JSON.stringify({ ...user, token }));
-        console.log("💾 User data synced to disk (Profile/Groups updated)");
-      } catch (e) {
-        console.error("Failed to sync user to disk", e);
-      }
+    if (isProfileComplete) {
+      // Already has a profile? Go to the groups
+      navigation.navigate("CommunityGroups");
+    } else {
+      // New user? Go to profile creation
+      navigation.navigate("CommunityProfileCreation");
     }
   };
 
-  syncUserToDisk();
-}, [user]); // Runs every time 'user' state is updated
+  //NEW: Keep AsyncStorage in sync whenever the user object changes
+  useEffect(() => {
+    const syncUserToDisk = async () => {
+      if (user) {
+        try {
+          await AsyncStorage.setItem(
+            "userData",
+            JSON.stringify({ ...user, token }),
+          );
+          console.log("💾 User data synced to disk (Profile/Groups updated)");
+        } catch (e) {
+          console.error("Failed to sync user to disk", e);
+        }
+      }
+    };
+
+    syncUserToDisk();
+  }, [user]); // Runs every time 'user' state is updated
 
   return (
     <AuthContext.Provider
@@ -89,8 +94,8 @@ useEffect(() => {
         setAuthChecked,
         API_URL,
         handleCommunityNavigation,
-        isGroupJoined,     
-        updateLocalUser,  
+        isGroupJoined,
+        updateLocalUser,
         logout,
       }}
     >

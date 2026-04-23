@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes.js');
 const supportRoutes=require("./routes/supportRoutes");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
+const chatRoutes = require("./routes/chatRoutes"); 
 
 // 1. Load Environment Variables
 dotenv.config();
@@ -29,6 +30,8 @@ app.use("/api/support", supportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use('/api/mood', moodRoutes);
+app.use("/api/chat", chatRoutes); 
+
 // 4. Test Route (The "Connectivity Test" endpoint)
 app.get('/api/test', (req, res) => {
     res.status(200).json({ 
