@@ -69,6 +69,7 @@ const handleMoodCheckIn = async () => {
   }
 };
   return (
+    // <ScrollView>
     <View style={{ flex: 1 }}>
       <LinearGradient
         colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}

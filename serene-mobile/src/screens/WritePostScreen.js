@@ -52,7 +52,7 @@ const WritePostScreen = ({ navigation,route }) => {
     setLoading(true);
     console.log("handle Post press triggered");
     try {
-      await axios.post(`${API_URL}/posts`, {
+      await axios.post(`${API_URL}/api/posts`, {
         content: body,
         group: groupId,
         isAnonymous:isAnonymous
@@ -108,7 +108,7 @@ const WritePostScreen = ({ navigation,route }) => {
       </View>
 
         <TextInput
-          style={styles.bodyInput} // 💡 STYLE APPLIED HERE FOR BORDER
+          style={styles.bodyInput}
           placeholder="Write your post here..."
           placeholderTextColor="#A3A3A3"
           value={body}

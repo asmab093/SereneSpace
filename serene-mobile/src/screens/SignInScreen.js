@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
-import {View,Text,Image,TouchableOpacity,StyleSheet,Alert,} from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
@@ -43,7 +50,7 @@ const SignInScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
         email,
         password,
       });
@@ -117,7 +124,6 @@ const SignInScreen = ({ navigation }) => {
             <Text style={styles.signUpLink}>Sign up</Text>
           </Text>
         </TouchableOpacity>
-        
 
         <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>

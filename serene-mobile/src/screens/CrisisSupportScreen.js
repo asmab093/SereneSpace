@@ -16,7 +16,7 @@ import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 
 const BackIcon = require("../assets/BackIcon.png");
-const PhoneIcon = require("../assets/phone-call.png"); // Icon for phone/call action
+const PhoneIcon = require("../assets/phone-call.png"); 
 const TimeIcon = require("../assets/clock.png"); // Icon for time/schedule
 const UserGroupIcon = require("../assets/group.png"); // Icon for Counselors/Volunteers
 const WebsiteIcon = require("../assets/global.png"); // Icon for website link
@@ -41,11 +41,11 @@ const CrisisSupportScreen = ({ navigation, route }) => {
     setLoading(true);
     try {
       if (activeTab === "hotlines") {
-        const res = await axios.get(`${API_URL}/support/hotlines`);
+        const res = await axios.get(`${API_URL}/api/support/hotlines`);
         setHotlines(res.data.data);
       } else {
         const res = await axios.get(
-          `${API_URL}/support/professionals?search=${searchQuery}`,
+          `${API_URL}/api/support/professionals?search=${searchQuery}`,
         );
         setProfessionals(res.data.data);
       }

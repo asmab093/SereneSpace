@@ -43,7 +43,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
 
   const handleDeletePost = async (postId) => {
     try {
-      await axios.delete(`${API_URL}/posts/${postId}`, {
+      await axios.delete(`${API_URL}/api/posts/${postId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPosts(posts.filter((p) => p._id !== postId)); // Remove from UI
@@ -54,7 +54,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
 
   const handleDeleteReply = async (postId, replyId) => {
     try {
-      await axios.delete(`${API_URL}/posts/replies/${replyId}`, {
+      await axios.delete(`${API_URL}/api/posts/replies/${replyId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -80,7 +80,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
     setIsSendingReply(true);
     try {
       const response = await axios.post(
-        `${API_URL}/posts/${postId}/replies`,
+        `${API_URL}/api/posts/${postId}/replies`,
         { content },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -114,7 +114,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get(`${API_URL}/posts/${groupId}`);
+      const response = await axios.get(`${API_URL}/api/posts/${groupId}`);
       setPosts(response.data.data);
     } catch (error) {
       console.log("error in fetching posts", error);

@@ -69,7 +69,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
   const { user, setUser, API_URL, token } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("browse"); // 'browse' as default
-  const [selectedGroups, setSelectedGroups] = useState({});  //If you select a group with ID 123, the state becomes { "123": true }.
+  const [selectedGroups, setSelectedGroups] = useState({}); //If you select a group with ID 123, the state becomes { "123": true }.
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isSuccessPopupVisible, setIsSuccessPopupVisible] = useState(false);
 
@@ -85,20 +85,20 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
 
   //selectedCount>a derived variable to count how many true values are in selectedGroups.
   const selectedCount = Object.values(selectedGroups).filter((v) => v).length;
-  // console.log(selectedCount); 
+  // console.log(selectedCount);
   const isJoinEnabled = selectedCount > 0;
 
   const handleJoinNow = async () => {
     const newGroupsList = Object.keys(selectedGroups).filter(
       (id) => selectedGroups[id],
-    );//It converts the selectedGroups object into a simple array of IDs (e.g., ["depression", "anxiety"]).
+    ); //It converts the selectedGroups object into a simple array of IDs (e.g., ["depression", "anxiety"]).
     const combinedGroups = [...(user?.joinedGroups || []), ...newGroupsList];
     //combinedGroups takes the groups the user already had in user.joinedGroups and adds the new ones
     //combinedGroups ["adhd", "depression", "anxiety", "self_esteem"]
     try {
       // 1. Save to Backend (MongoDB)
       const response = await axios.put(
-        `${API_URL}/users/joined-groups`,
+        `${API_URL}/api/users/joined-groups`,
         { groups: combinedGroups },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -106,7 +106,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
         // 2. Update Context locally
         setUser(response.data.data);
         setSelectedGroups({});
-        setIsSuccessPopupVisible(true);//shows the popup
+        setIsSuccessPopupVisible(true); //shows the popup
       }
     } catch (error) {
       console.error("Error joining groups:", error);
@@ -124,30 +124,30 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
   };
 
   // Inside CommunityGroupSelectionScreen component
-const handleLeaveGroup = async (groupId) => {
-  // 1. Create the new list by filtering OUT the group being left
-  const updatedGroups = user.joinedGroups.filter((id) => id !== groupId);
-  try {
-    const response = await axios.put(
-      `${API_URL}/users/joined-groups`,
-      { groups: updatedGroups },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  const handleLeaveGroup = async (groupId) => {
+    // 1. Create the new list by filtering OUT the group being left
+    const updatedGroups = user.joinedGroups.filter((id) => id !== groupId);
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/users/joined-groups`,
+        { groups: updatedGroups },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
-    if (response.data.success) {
-      // 3. ✅ Update local Context state
-      // This will automatically move the group back to "Browse" 
-      // because our renderContent filters by user.joinedGroups
-      setUser(response.data.data);
-      console.log("Successfully left the group");
+      if (response.data.success) {
+        // 3. ✅ Update local Context state
+        // This will automatically move the group back to "Browse"
+        // because our renderContent filters by user.joinedGroups
+        setUser(response.data.data);
+        console.log("Successfully left the group");
+      }
+    } catch (error) {
+      console.error("Error leaving group:", error);
+      Alert.alert("Error", "Could not leave the group. Please try again.");
     }
-  } catch (error) {
-    console.error("Error leaving group:", error);
-    Alert.alert("Error", "Could not leave the group. Please try again.");
-  }
-};
+  };
 
-  // --- Group Card Component 
+  // --- Group Card Component
   const GroupCard = ({ data, isChecked, onToggle }) => {
     // 'activeTab' is available because GroupCard is defined inside CommunityGroupSelectionScreen
     const isCirclesTab = activeTab === "circles";
@@ -279,7 +279,6 @@ const handleLeaveGroup = async (groupId) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Community</Text>
         <View style={styles.headerRightIcons}>
-          
           <TouchableOpacity
             onPress={() => setIsPopupVisible(true)}
             style={styles.headerIconWrapper}
@@ -378,7 +377,7 @@ const styles = StyleSheet.create({
     color: "#512DA8",
     marginLeft: 15,
     fontFamily: "Quicksand-Bold",
-   flex:1,
+    flex: 1,
   },
   headerRightIcons: {
     flexDirection: "row",

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
   Alert,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -83,6 +84,7 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   return (
+    // <ScrollView>
     <LinearGradient
       colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
       style={styles.container}
@@ -154,6 +156,7 @@ const SignUpScreen = ({ navigation }) => {
         </View>
       </View>
     </LinearGradient>
+   // </ScrollView>
   );
 };
 
