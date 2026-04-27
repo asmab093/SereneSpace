@@ -39,8 +39,7 @@ import CrisisSupportScreen from "./src/screens/CrisisSupportScreen";
 import ChatBotScreen from "./src/screens/ChatBotScreen";
 import CustomDrawer from "./src/components/CustomDrawer";
 import GeneralRecommendationsScreen from "./src/screens/GeneralRecommendation1";
-
-// --- ASSET ARRAY ---
+import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
 const requiredImages = [
   require("./src/assets/BackIcon.png"),
   require("./src/assets/AccountsSecurityIcon.png"),
@@ -237,7 +236,7 @@ const AppMain = () => {
           <Stack.Screen name="QuizComplete" component={QuizCompletionScreen} />
 
           {/* Support & Community */}
-          <Stack.Screen name="CrisisSupport" component={CrisisSupportScreen} />
+         
           <Stack.Screen name="WritePost" component={WritePostScreen} />
 
           {/* Profile & Stats */}
@@ -269,6 +268,19 @@ const AppMain = () => {
             name="GroupDetail"
             component={GroupDetailScreen}
           />
+          <Stack.Screen 
+  name="CrisesSupport" 
+  component={CrisisSupportScreen} 
+/>
+
+<Stack.Screen 
+    name="VideoPlayer" 
+    component={VideoPlayerScreen} 
+    options={{ 
+        presentation: 'modal',
+        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS // Slide up effect
+    }} 
+  />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast />

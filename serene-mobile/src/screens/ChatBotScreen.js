@@ -9,7 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  Modal,
 } from "react-native";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -61,8 +61,13 @@ const ChatBotScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingInstance, setRecordingInstance] = useState(null); // Renamed to avoid confusion
+  const [recordingInstance, setRecordingInstance] = useState(null);
   const scrollViewRef = useRef();
+
+  // ✅ SCENARIO & CRISIS STATES
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentScenario, setCurrentScenario] = useState(null);
+  const [activeVideoUrl, setActiveVideoUrl] = useState(null);
 
   useEffect(() => {
     const setupAudio = async () => {
@@ -92,24 +97,22 @@ const ChatBotScreen = ({ navigation }) => {
         console.error("❌ History Load Error:", err.message);
       }
     };
-    const delayDebounceFn = setTimeout(() => fetchHistory(), 500);
-    return () => clearTimeout(delayDebounceFn);
+    fetchHistory();
   }, [token]);
 
   const isProcessingAction = useRef(false);
 
+  // 🎤 RECORDING LOGIC START
   async function startRecording() {
-    if (isProcessingAction.current) return; // Ignore if we are already busy
+    if (isProcessingAction.current) return;
     isProcessingAction.current = true;
 
-    console.log("🔘 MIC BUTTON PRESSED IN");
     try {
-      // 1. Force cleanup of any existing instance before starting
       if (recordingInstance) {
         try {
           await recordingInstance.stopAndUnloadAsync();
         } catch (e) {
-          console.log("Cleanup silent fail (expected)");
+          console.log("Cleanup silent fail");
         }
         setRecordingInstance(null);
       }
@@ -126,7 +129,7 @@ const ChatBotScreen = ({ navigation }) => {
       });
 
       const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
 
       setRecordingInstance(recording);
@@ -136,7 +139,7 @@ const ChatBotScreen = ({ navigation }) => {
       console.error("❌ Failed to start recording", err);
       setIsRecording(false);
     } finally {
-      isProcessingAction.current = false; // Unlock
+      isProcessingAction.current = false;
     }
   }
 
@@ -147,18 +150,15 @@ const ChatBotScreen = ({ navigation }) => {
     }
     isProcessingAction.current = true;
 
-    console.log("🔘 MIC BUTTON RELEASED");
     try {
       setIsRecording(false);
-
-      // 2. Double check status before unloading
       const status = await recordingInstance.getStatusAsync();
       if (status.isRecording || status.canRecord) {
         await recordingInstance.stopAndUnloadAsync();
       }
 
       const uri = recordingInstance.getURI();
-      setRecordingInstance(null); // Clear instance immediately
+      setRecordingInstance(null);
 
       if (uri) {
         console.log("✅ Recording saved at:", uri);
@@ -168,30 +168,25 @@ const ChatBotScreen = ({ navigation }) => {
       console.log("❌ Stop Recording Error:", err.message);
       setRecordingInstance(null);
     } finally {
-      isProcessingAction.current = false; // Unlock
+      isProcessingAction.current = false;
     }
   }
 
-  // 3. Helper function to keep stopRecording clean
   const sendAudioToBackend = async (uri) => {
     try {
       const formData = new FormData();
       formData.append("audio", {
         uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
-        type: "audio/m4a", // 👈 Ensure this matches
-        name: "speech.m4a", // 👈 And this matches
+        type: "audio/m4a",
+        name: "speech.m4a",
       });
 
-      const res = await axios.post(
-        `${BASE_URL}/api/chat/transcribe`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
+      const res = await axios.post(`${BASE_URL}/api/chat/transcribe`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (res.data.text) {
         setInputText(res.data.text);
@@ -200,34 +195,96 @@ const ChatBotScreen = ({ navigation }) => {
       console.log("❌ STT Error:", err.message);
     }
   };
+  // 🎤 RECORDING LOGIC END
 
-  const handleSend = async () => {
+const handleSend = async () => {
     if (!inputText.trim()) return;
     const userMsg = { id: Date.now(), text: inputText, sender: "user" };
     setMessages((prev) => [...prev, userMsg]);
     setInputText("");
     setLoading(true);
+
     try {
       const response = await axios.post(
         `${BASE_URL}/api/chat/message`,
         { message: userMsg.text },
-        { headers: { Authorization: `Bearer ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      const { reply, triggerCrisisModal, scenarioType, videoUrl } = response.data;
+
       const botMsg = {
         id: Date.now() + 1,
-        text: response.data.reply,
+        text: reply,
         sender: "bot",
       };
       setMessages((prev) => [...prev, botMsg]);
+
+      if (triggerCrisisModal) {
+        setCurrentScenario(scenarioType);
+        setActiveVideoUrl(videoUrl);
+        setModalVisible(true);
+      }
     } catch (error) {
       console.error("Chat Error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }; // ✅ This is the ONLY closing brace needed for handleSend
+
+  // ✅ MODAL COMPONENT
+ // ✅ This belongs inside your ChatBotScreen component, before the return statement
+  const CrisisModal = () => (
+    <Modal transparent visible={modalVisible} animationType="slide">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Serene Support</Text>
+          <Text style={styles.modalSubText}>
+            {currentScenario === "CRISIS_WITH_CATEGORY"
+              ? "We've noticed you're feeling overwhelmed. Your safety is our priority."
+              : "I can feel your pain. Please take a moment to ground yourself."}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={() => {
+              setModalVisible(false);
+              navigation.navigate("VideoPlayer", { url: activeVideoUrl });
+            }}
+          >
+            <Text style={styles.buttonText}>
+              {currentScenario === "CRISIS_WITH_CATEGORY"
+                ? " Watch therapeutic video"
+                : " Watch grounding video"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.modalButton} 
+            onPress={() => {
+              setModalVisible(false);
+              navigation.navigate("CrisesSupport"); 
+            }}
+          >
+            <Text style={styles.buttonText}> Get crisis support</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.modalButton, { backgroundColor: "#F0F0F0" }]}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text style={[styles.buttonText, { color: "#666" }]}>
+               I am okay
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  ); 
 
   return (
     <View style={{ flex: 1 }}>
+      <CrisisModal />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -245,50 +302,45 @@ const ChatBotScreen = ({ navigation }) => {
 
           <ScrollView
             ref={scrollViewRef}
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
+            onContentSizeChange={() =>
+              scrollViewRef.current.scrollToEnd({ animated: true })
+            }
           >
             {messages.map((msg, index) => (
               <ChatMessage
-                key={msg._id || msg.id || `msg-${index}`}
+                key={msg._id || msg.id || index.toString()}
                 message={msg}
               />
             ))}
-            {loading && (
-              <Text style={styles.loadingText}>Bot is thinking...</Text>
-            )}
+            {loading && <Text style={styles.loadingText}>Bot is thinking...</Text>}
           </ScrollView>
 
           <View style={styles.inputBar}>
             <TouchableOpacity
               activeOpacity={1}
-              delayLongPress={0}
               onPressIn={startRecording}
               onPressOut={stopRecording}
               style={styles.micButton}
             >
-              <View pointerEvents="none">
-                <Image
-                  source={MicIcon}
-                  style={[
-                    styles.micIcon,
-                    isRecording && {
-                      tintColor: "red",
-                      transform: [{ scale: 1.2 }],
-                    },
-                  ]}
-                />
-              </View>
+              <Image
+                source={MicIcon}
+                style={[
+                  styles.micIcon,
+                  isRecording && {
+                    tintColor: "red",
+                    transform: [{ scale: 1.2 }],
+                  },
+                ]}
+              />
             </TouchableOpacity>
 
             <View style={styles.textInputContainer}>
               {isRecording ? (
-                /* 🎤 This is shown ONLY when recording */
                 <View style={styles.recordingOverlay}>
                   <View style={styles.redDot} />
                   <Text style={styles.recordingText}>Listening...</Text>
                 </View>
               ) : (
-                /* ⌨️ This is shown normally */
                 <TextInput
                   style={styles.textInput}
                   placeholder="Type a message..."
@@ -321,39 +373,6 @@ const ChatBotScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  textInputContainer: {
-    flex: 1,
-    height: 40,
-    backgroundColor: "#F0F0F0",
-    borderRadius: 20,
-    marginRight: 10,
-    justifyContent: 'center', // Centers the "Listening" text vertically
-  },
-  recordingOverlay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    width: '100%',
-  },
-  redDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'red',
-    marginRight: 8,
-  },
-  recordingText: {
-    color: 'red',
-    fontFamily: 'Quicksand-Bold',
-    fontSize: 14,
-  },
-  textInput: {
-    flex: 1,
-    paddingHorizontal: 15,
-    fontSize: 15,
-    fontFamily: "Quicksand-Regular",
-    color: "#333",
-  },
   container: { flex: 1, backgroundColor: "#D7D9F4" },
   innerContainer: { flex: 1 },
   header: {
@@ -372,11 +391,11 @@ const styles = StyleSheet.create({
     fontFamily: "Quicksand-Bold",
     marginLeft: 15,
   },
-  chatContent: { paddingHorizontal: 15, paddingVertical: 10 },
   messageContainer: {
     flexDirection: "row",
     maxWidth: "85%",
     marginVertical: 7,
+    paddingHorizontal: 15,
   },
   botMessageContainer: { alignSelf: "flex-start" },
   userMessageContainer: { alignSelf: "flex-end", justifyContent: "flex-end" },
@@ -387,16 +406,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginTop: 5,
   },
-  messageBubble: {
-    padding: 12,
-    borderRadius: 15,
-    maxWidth: "100%",
-    elevation: 2,
-  },
+  messageBubble: { padding: 12, borderRadius: 15, maxWidth: "100%" },
   botBubble: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 0 },
   userBubble: { backgroundColor: "#A892FF", borderTopRightRadius: 0 },
-  botText: { fontSize: 15, color: "#333" },
-  userText: { fontSize: 15, color: "#FFFFFF" },
+  botText: { fontSize: 15, color: "#333", fontFamily: "Quicksand-Regular" },
+  userText: { fontSize: 15, color: "#FFFFFF", fontFamily: "Quicksand-Regular" },
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -406,10 +420,82 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#EBE5F7",
   },
+  textInputContainer: {
+    flex: 1,
+    height: 40,
+    backgroundColor: "#F0F0F0",
+    borderRadius: 20,
+    marginRight: 10,
+    justifyContent: "center",
+  },
+  textInput: {
+    flex: 1,
+    paddingHorizontal: 15,
+    fontSize: 15,
+    fontFamily: "Quicksand-Regular",
+    color: "#333",
+  },
+  recordingOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+  },
+  redDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "red",
+    marginRight: 8,
+  },
+  recordingText: {
+    color: "red",
+    fontFamily: "Quicksand-Bold",
+    fontSize: 14,
+  },
   micButton: { padding: 5, marginRight: 8 },
   micIcon: { width: 28, height: 28, tintColor: "#512DA8" },
   sendIcon: { width: 28, height: 28, tintColor: "#512DA8" },
   loadingText: { alignSelf: "center", color: "#888", marginVertical: 10 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(81, 45, 168, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "85%",
+    backgroundColor: "white",
+    borderRadius: 25,
+    padding: 25,
+    alignItems: "center",
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontFamily: "Quicksand-Bold",
+    color: "#512DA8",
+    marginBottom: 10,
+  },
+  modalSubText: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 20,
+    fontFamily: "Quicksand-Regular",
+  },
+  modalButton: {
+    width: "100%",
+    backgroundColor: "#A892FF",
+    padding: 15,
+    borderRadius: 15,
+    marginVertical: 6,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontFamily: "Quicksand-Bold",
+    fontSize: 15,
+  },
 });
 
 export default ChatBotScreen;
