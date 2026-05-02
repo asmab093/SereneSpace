@@ -10,14 +10,14 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, "Email is required"],
-    unique: true, // Prevents duplicate emails
+    unique: true, 
     lowercase: true,
     trim: true,
   },
   password: {
     type: String,
     required: [true, "Password is required"],
-    minlength: [6, "Password must be at least 6 characters long"], // ✅ Added custom message
+    minlength: [6, "Password must be at least 6 characters long"], 
   },
   createdAt: {
     type: Date,
@@ -38,15 +38,10 @@ const userSchema = new mongoose.Schema({
     avatarId: { type: Number, default: null },
     hasCompletedProfile: { type: Boolean, default: false },
   },
-  joinedGroups: [{ type: String }], // Array of group IDs like ['anxiety', 'adhd']
+  joinedGroups: [{ type: String }], 
   resetPasswordOTP: String,
   resetPasswordExpires: Date,
 });
-
-// if you update a user's username but keep the same password, you don't
-//  want to hash the password again. If you hash a hash, the user will
-//  never be able to log in!
-// Models/User.js
 
 // The Correct Async Way (No 'next' argument needed)
 userSchema.pre("save", async function () {
@@ -55,17 +50,16 @@ userSchema.pre("save", async function () {
   // Only hash the password if it has been modified
   if (!this.isModified("password")) {
     console.log("Middleware: Password not modified. Proceeding...");
-    return; // Just return; Mongoose will continue automatically
+    return; 
   }
 
   try {
     console.log("Middleware: Hashing new password...");
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    // No need to call next() here
   } catch (error) {
     console.error("Middleware Error:", error);
-    throw error; // Throwing error will stop the save and trigger the catch block
+    throw error; 
   }
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import {View,Text,StyleSheet,ScrollView,Image,Alert,TouchableOpacity,Modal} from "react-native";
+import {View, Text, StyleSheet, ScrollView, Image, Alert, TouchableOpacity, Modal} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import CustomButton from "../components/CustomButton";
@@ -25,18 +25,30 @@ const relationData = [
   { label: "Friend", value: "Friend" },
 ];
 
+// 🌍 Expanded Country Data with specific digit limits
 const countryData = [
-  { label: "Pakistan (+92)", value: "+92" },
-  { label: "USA (+1)", value: "+1" },
-  { label: "UK (+44)", value: "+44" },
-  { label: "India (+91)", value: "+91" },
-  { label: "UAE (+971)", value: "+971" },
+  { label: "Pakistan (+92)", value: "+92", maxLength: 10 }, // ⬅️ UPDATED: Max length is now 10
+  { label: "USA/Canada (+1)", value: "+1", maxLength: 10 },
+  { label: "UK (+44)", value: "+44", maxLength: 11 },
+  { label: "India (+91)", value: "+91", maxLength: 10 },
+  { label: "UAE (+971)", value: "+971", maxLength: 9 },
+  { label: "Australia (+61)", value: "+61", maxLength: 9 },
+  { label: "Saudi Arabia (+966)", value: "+966", maxLength: 9 },
+  { label: "Germany (+49)", value: "+49", maxLength: 11 },
+  { label: "France (+33)", value: "+33", maxLength: 9 },
+  { label: "China (+86)", value: "+86", maxLength: 11 },
+  { label: "Japan (+81)", value: "+81", maxLength: 10 },
+  { label: "South Korea (+82)", value: "+82", maxLength: 10 },
+  { label: "Bangladesh (+880)", value: "+880", maxLength: 10 },
+  { label: "Malaysia (+60)", value: "+60", maxLength: 10 },
+  { label: "South Africa (+27)", value: "+27", maxLength: 9 },
+  { label: "Other", value: "other", maxLength: 15 }, 
 ];
 
 const AddContactScreen = ({ route, navigation }) => {
-  const { API_URL, setUser, user,login } = useContext(AuthContext); 
-  // Use optional chaining for userId to prevent crashes on reload
-  const { userId, existingContact } = route?.params || {}; // Get existingContact
+  const { API_URL, setUser, user, login } = useContext(AuthContext); 
+  const { userId, existingContact } = route?.params || {}; 
+  
   const [name, setName] = useState(existingContact?.name || "");
   const [relation, setRelation] = useState(existingContact?.relation || null);
   const [countryCode, setCountryCode] = useState(existingContact?.countryCode || null);
@@ -45,48 +57,68 @@ const AddContactScreen = ({ route, navigation }) => {
   const [isFocus, setIsFocus] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
+  // 🧠 Dynamically calculate the max length based on the selected country
+  const selectedCountry = countryData.find(c => c.value === countryCode);
+  const currentMaxLength = selectedCountry ? selectedCountry.maxLength : 15;
+
+  // 🚨 NEW: Actively block leading zeros and non-numbers in real-time
+  const handlePhoneChange = (text) => {
+    let cleanedText = text.replace(/[^0-9]/g, ""); // Keep only numbers
+    
+    // If they try to type a 0 as the very first digit, delete it immediately
+    if (cleanedText.startsWith("0")) {
+      cleanedText = cleanedText.substring(1);
+    }
+    
+    setPhone(cleanedText);
+  };
+
   const handleAddContact = async () => {
     if (!name.trim() || !relation || !countryCode || !phone.trim()) {
       Alert.alert("Missing Information", "Please fill in all fields.");
       return;
     }
 
-    //FIX 2: Ensure we have a valid ID even if route.params was lost
+    // Optional Validation: Ensure they hit the exact length requirement
+    if (phone.length !== currentMaxLength && countryCode !== "other") {
+        Alert.alert("Invalid Length", `Phone numbers for this country must be exactly ${currentMaxLength} digits.`);
+        return;
+    }
+
     const activeUserId = userId || user?._id;
 
     try {
       const response = await axios.put(`${API_URL}/auth/add-contact`, {
-        userId:activeUserId,
+        userId: activeUserId,
         contactName: name,
         relation,
         countryCode,
-        contactPhone: phone,
+        contactPhone: phone, 
       });
 
-     if (response.data.success) {
-        // ✅ THE FIX: Create the full updated user object
+      if (response.data.success) {
         const updatedUser = { 
           ...user, 
           hasAddedContact: true, 
           emergencyContact: { name, relation, countryCode, phone } 
         };
-        // This ensures the new contact is saved to AsyncStorage (Disk)
+        
         await login(updatedUser);
-        //DYNAMIC TOAST LOGIC >existCon{name:"ali",rel:"bro"}, object is truthy, ! of truth is false, ! of F=T, so if isUpdating is True?
-            const isUpdating = !!existingContact; // true if data was passed from Profile
+        
+        const isUpdating = !!existingContact; 
 
-            Toast.show({
-                type: "success",
-                text1: isUpdating ? "Updated! ✅" : "Success! 🌱",
-                text2: isUpdating 
-                    ? "Emergency contact updated successfully." 
-                    : "Emergency contact added successfully.",
-                position: "bottom",
-                visibilityTime: 3000,
-            });
-        //Redirect Logic: If we came from Profile, go back to Profile
+        Toast.show({
+            type: "success",
+            text1: isUpdating ? "Updated! ✅" : "Success! 🌱",
+            text2: isUpdating 
+                ? "Emergency contact updated successfully." 
+                : "Emergency contact added successfully.",
+            position: "bottom",
+            visibilityTime: 3000,
+        });
+
         if (existingContact) {
-          navigation.goBack(); // Takes user back to Profile
+          navigation.goBack(); 
         } else {
           navigation.replace("AuthSuccess", { mode: "signup" });
         }
@@ -102,7 +134,6 @@ const AddContactScreen = ({ route, navigation }) => {
       colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
       style={styles.container}
     >
-      {/* ✅ 2. Information Icon Button */}
       <TouchableOpacity
         style={styles.infoButton}
         onPress={() => setShowInfo(true)}
@@ -110,7 +141,6 @@ const AddContactScreen = ({ route, navigation }) => {
         <Info size={28} color="#512DA8" />
       </TouchableOpacity>
 
-      {/* ✅ 3. Information Modal */}
       <Modal
         transparent={true}
         visible={showInfo}
@@ -156,7 +186,6 @@ const AddContactScreen = ({ route, navigation }) => {
             onChangeText={setName}
           />
 
-          {/* ✅ Relation Dropdown */}
           <View style={styles.dropdownContainer}>
             <Image source={LinkIcon} style={styles.inputIcon} />
             <Dropdown
@@ -178,7 +207,6 @@ const AddContactScreen = ({ route, navigation }) => {
             />
           </View>
 
-          {/* ✅ Country Code Dropdown */}
           <View style={styles.dropdownContainer}>
             <Image source={PhoneIcon} style={styles.inputIcon} />
             <Dropdown
@@ -191,16 +219,20 @@ const AddContactScreen = ({ route, navigation }) => {
               valueField="value"
               placeholder="Select Country Code"
               value={countryCode}
-              onChange={(item) => setCountryCode(item.value)}
+              onChange={(item) => {
+                setCountryCode(item.value);
+                setPhone(""); 
+              }}
             />
           </View>
 
           <InputField
             IconSource={ContactIcon}
-            placeholder="Contact no..."
+            placeholder={`Contact no. (Max ${currentMaxLength} digits)`}
             keyboardType="phone-pad"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={handlePhoneChange} // ⬅️ UPDATED: using the new zero-blocker function
+            maxLength={currentMaxLength} 
           />
         </View>
 
@@ -274,7 +306,6 @@ const styles = StyleSheet.create({
   },
   headerGraphic: { width: 250, height: 150, marginBottom: 30 },
   title: {
-    fontSize: 22,
     fontWeight: "600",
     color: "#512DA8",
     marginBottom: 20,
@@ -283,8 +314,6 @@ const styles = StyleSheet.create({
     fontFamily: "Quicksand-Bold",
   },
   inputBlock: { width: "100%", marginBottom: 20 },
-
-  // Styles for the Dropdowns
   dropdownContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -293,7 +322,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: 55,
     marginVertical: 8,
-    // Shadow for iOS/Android
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

@@ -18,6 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeFooter from "../components/HomeFooter";
 import { Audio } from "expo-av";
+import { Check, X } from "lucide-react-native";
 
 const BackIcon = require("../assets/BackIcon.png");
 const SendIcon = require("../assets/SendIcon.png");
@@ -68,6 +69,9 @@ const ChatBotScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentScenario, setCurrentScenario] = useState(null);
   const [activeVideoUrl, setActiveVideoUrl] = useState(null);
+  
+  // 🚨 NEW: Alert Banner State
+  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     const setupAudio = async () => {
@@ -197,7 +201,7 @@ const ChatBotScreen = ({ navigation }) => {
   };
   // 🎤 RECORDING LOGIC END
 
-const handleSend = async () => {
+  const handleSend = async () => {
     if (!inputText.trim()) return;
     const userMsg = { id: Date.now(), text: inputText, sender: "user" };
     setMessages((prev) => [...prev, userMsg]);
@@ -211,7 +215,7 @@ const handleSend = async () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const { reply, triggerCrisisModal, scenarioType, videoUrl } = response.data;
+      const { reply, triggerCrisisModal, scenarioType, videoUrl, alertSent } = response.data;
 
       const botMsg = {
         id: Date.now() + 1,
@@ -219,6 +223,12 @@ const handleSend = async () => {
         sender: "bot",
       };
       setMessages((prev) => [...prev, botMsg]);
+
+      // 🚨 NEW: Trigger the alert banner if SMS was sent
+      if (alertSent) {
+        setShowAlert(true);
+        setTimeout(() => setShowAlert(false), 6000); 
+      }
 
       if (triggerCrisisModal) {
         setCurrentScenario(scenarioType);
@@ -230,10 +240,9 @@ const handleSend = async () => {
     } finally {
       setLoading(false);
     }
-  }; // ✅ This is the ONLY closing brace needed for handleSend
+  };
 
   // ✅ MODAL COMPONENT
- // ✅ This belongs inside your ChatBotScreen component, before the return statement
   const CrisisModal = () => (
     <Modal transparent visible={modalVisible} animationType="slide">
       <View style={styles.modalOverlay}>
@@ -299,6 +308,19 @@ const handleSend = async () => {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Serene Bot</Text>
           </View>
+
+          {/* 🚨 NEW: THE ALERT BANNER */}
+          {showAlert && (
+            <View style={styles.alertBanner}>
+              <View style={styles.alertIconContainer}>
+                <Check size={24} color="#FFFFFF" strokeWidth={3} />
+              </View>
+              <Text style={styles.alertText}>An alert has been successfully{"\n"}sent.</Text>
+              <TouchableOpacity onPress={() => setShowAlert(false)}>
+                <X size={20} color="#000" />
+              </TouchableOpacity>
+            </View>
+          )}
 
           <ScrollView
             ref={scrollViewRef}
@@ -495,6 +517,40 @@ const styles = StyleSheet.create({
     color: "white",
     fontFamily: "Quicksand-Bold",
     fontSize: 15,
+  },
+  alertBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 20,
+    marginTop: 15,
+    padding: 15,
+    borderRadius: 15,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    position: "absolute",
+    top: 90,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  alertIconContainer: {
+    backgroundColor: "#6BDBB5",
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  alertText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "Quicksand-Bold",
+    color: "#000000",
   },
 });
 

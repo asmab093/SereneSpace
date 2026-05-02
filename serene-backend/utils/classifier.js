@@ -1,6 +1,26 @@
 const axios = require("axios");
 
 const classifyMessage = async (text) => {
+  // ---------------------------------------------------------
+  // 🛡️ FIRST: Check for strict keywords, but don't exit yet!
+  // ---------------------------------------------------------
+  const textLower = text.toLowerCase();
+  const crisisKeywords = [
+    "jump off","jump from", "kill", "suicide", "end it", "harm","pills", 
+    "death", "overdose", "taking my own life", "disappear permanently",
+    "hurt myself", "end it all tonight", "can't go on", "no reason to live", "done with life", "goodbye forever","want to die"
+  ];
+  
+  // This evaluates to true if a dangerous word is found
+  const keywordTriggeredCrisis = crisisKeywords.some(word => textLower.includes(word));
+
+  if (keywordTriggeredCrisis) {
+    console.log("🚨 SAFETY TRIGGER: Critical keyword detected! Forcing crisis mode.");
+  }
+
+  // ---------------------------------------------------------
+  // 🧠 SECOND: Ask the AI for specific categories and nuances
+  // ---------------------------------------------------------
   try {
     console.log("🚀 Calling Space API Directly for:", text);
 
@@ -54,34 +74,31 @@ const classifyMessage = async (text) => {
 
     if (aiResults) {
       console.log(`📊 AI RAW: Category: ${aiResults.category_label}, Suicide: ${aiResults.suicide_label}, Score: ${aiResults.suicide_score}`);
+      
       return {
-        category: aiResults.category_label?.toLowerCase() || "normal",
-        isCrisis: aiResults.suicide_label === "non-suicide", 
-        crisisScore: aiResults.suicide_score || 0
+        // Grab specific category from AI, or default to generic "crisis" if only keywords triggered it
+        category: aiResults.category_label?.toLowerCase() || (keywordTriggeredCrisis ? "crisis" : "normal"),
+        
+        // ⬅️ MAGIC: Crisis if AI says so (backward logic: non-suicide), OR if strict keywords caught it
+        isCrisis: keywordTriggeredCrisis || (aiResults.suicide_label === "non-suicide"), 
+        
+        crisisScore: keywordTriggeredCrisis ? 1.0 : (aiResults.suicide_score || 0)
       };
     }
     throw new Error("AI Space timed out");
 
   } catch (error) {
-    // ✅ 1. Check for crisis keywords immediately if API fails
-    const textLower = text.toLowerCase();
-    const crisisKeywords = [
-      "jump", "kill", "suicide", "end it", "harm", "balcony", "pills", 
-      "death", "overdose", "taking my own life", "disappear permanently"
-    ];
-    
-    const containsCrisis = crisisKeywords.some(word => textLower.includes(word));
-
-    if (containsCrisis) {
+    // ✅ 1. EMERGENCY FALLBACK: API Failed, rely strictly on our keyword flag
+    if (keywordTriggeredCrisis) {
         console.log("⚠️ EMERGENCY FALLBACK: API Failed, but keywords safely detected a crisis!");
         return { 
-          category: "crisis", // Explicitly set to "crisis" so your DB knows exactly what to fetch
+          category: "crisis", 
           isCrisis: true, 
           crisisScore: 1.0 
         };
     }
 
-    // ✅ 3. Only print the scary API error if it was a normal conversation that failed
+    // ✅ 2. Only print the scary API error if it was a normal conversation that failed
     console.error("❌ API Error:", error.message);
 
     return {

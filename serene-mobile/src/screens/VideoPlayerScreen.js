@@ -1,11 +1,17 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+// ⬅️ NEW: Import the modern expo-video tools
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 const VideoPlayerScreen = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { url } = route.params; // Receiving Cloudinary URL from ChatBot
+
+  // ⬅️ NEW: Initialize the player hook
+  const player = useVideoPlayer(url, (player) => {
+    player.play(); // This replaces 'shouldPlay'
+  });
 
   return (
     <View style={styles.container}>
@@ -16,15 +22,13 @@ const VideoPlayerScreen = ({ route, navigation }) => {
         <Text style={styles.closeText}>✕ Close</Text>
       </TouchableOpacity>
       
-      <Video
-        source={{ uri: url }}
-        rate={1.0}
-        volume={1.0}
-        isMuted={false}
-        resizeMode={ResizeMode.CONTAIN}
-        shouldPlay
-        useNativeControls
+      {/* ⬅️ NEW: The VideoView component replacing expo-av */}
+      <VideoView
         style={styles.video}
+        player={player}
+        contentFit="contain" // This entirely replaces ResizeMode.CONTAIN
+        allowsFullscreen
+        allowsPictureInPicture
       />
     </View>
   );

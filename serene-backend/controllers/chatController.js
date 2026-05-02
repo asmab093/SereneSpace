@@ -1,4 +1,5 @@
 const Groq = require("groq-sdk");
+const axios = require("axios");
 const Message = require("../models/Message");
 const User = require("../models/User");
 const Video = require("../models/Video"); 
@@ -21,14 +22,13 @@ exports.getChatResponse = async (req, res) => {
   try {
     const { message } = req.body;
     
-    // Get analysis from classifier
     let { category, isCrisis, crisisScore } = await classifyMessage(message);
     
     const lowerCategory = category.toLowerCase();
     const isMentalHealthIssue = ["stress", "anxiety", "depression"].includes(lowerCategory);
 
-    // 1. Save User Message to Database
-    await Message.create({
+    // ⬅️ TWEAK 1: Save the message to a variable to exclude it from the cooldown check
+    const savedUserMessage = await Message.create({
       user: req.user.id,
       text: message,
       sender: "user",
@@ -43,30 +43,104 @@ exports.getChatResponse = async (req, res) => {
       const videoUrl = videoData ? videoData.cloudinaryUrl : null;
       
       const scenarioType = isMentalHealthIssue ? "CRISIS_WITH_CATEGORY" : "CRISIS_ONLY";
-
       const crisisReply = "I'm deeply concerned by what you're sharing. Please stay with me and use the resources below.";
       
       await Message.create({ user: req.user.id, text: crisisReply, sender: "bot" });
+
+      // ---------------------------------------------------------
+      // 🕒 NEW: 15-MINUTE COOLDOWN LOGIC
+      // ---------------------------------------------------------
+      let smsSuccessfullySent = false;
+      
+      const FIFTEEN_MINUTES = 15 * 60 * 1000;
+      const cutoffTime = new Date(Date.now() - FIFTEEN_MINUTES);
+
+      // Check if this specific user has triggered an alert in the last 15 mins
+      // (_id: { $ne: savedUserMessage._id } ensures we don't count the message they JUST sent)
+      const recentCrisis = await Message.findOne({
+        user: req.user.id,
+        isSuicidal: true,
+        createdAt: { $gte: cutoffTime },
+        _id: { $ne: savedUserMessage._id } 
+      });
+
+      if (recentCrisis) {
+        console.log("⏳ Cooldown active: Emergency alert was already sent within the last 15 minutes. Skipping WhatsApp API.");
+      } else {
+        // 🚨 NO RECENT CRISIS: FIRE THE WHATSAPP ALERT
+        try {
+          const currentUser = await User.findById(req.user.id);
+          
+          if (currentUser && currentUser.emergencyContact && currentUser.emergencyContact.phone) {
+            const contact = currentUser.emergencyContact;
+            
+            let fullPhoneNumber = `${contact.countryCode}${contact.phone}`.replace("+", "");
+            
+            const patientName = currentUser.username || "A user"; 
+
+            const whatsappPayload = {
+              messaging_product: "whatsapp",
+              to: fullPhoneNumber,
+              type: "template",
+              template: {
+                name: "emergency_alert_v1", 
+                language: {
+                  code: "en"
+                },
+                components: [
+                  {
+                    type: "body",
+                    parameters: [
+                      {
+                        type: "text",
+                        parameter_name: "user_name",
+                        text: patientName 
+                      }
+                    ]
+                  }
+                ]
+              }
+            };
+
+            await axios.post(
+              `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
+              whatsappPayload,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            
+            console.log(`✅ WhatsApp Alert successfully sent to ${fullPhoneNumber}`);
+            smsSuccessfullySent = true; 
+          } else {
+            console.log("⚠️ Crisis detected, but user has no emergency contact saved.");
+          }
+        } catch (apiError) {
+          console.error("❌ Failed to send WhatsApp Alert:", apiError.response?.data || apiError.message);
+        }
+      }
+      // ---------------------------------------------------------
 
       return res.status(200).json({ 
         reply: crisisReply,
         triggerCrisisModal: true, 
         scenarioType: scenarioType, 
         videoUrl: videoUrl,
-        detectedCategory: lowerCategory 
+        detectedCategory: lowerCategory,
+        alertSent: smsSuccessfullySent 
       });
     }
 
     // 🧠 SCENARIO 3 & 4: NO CRISIS
-    // Explicitly enforce Pakistan/Islamabad context to override Groq's default US safety responses
     const basePrompt = `You are SereneBot, a compassionate mental health AI operating in Islamabad, Pakistan. CRITICAL SAFETY INSTRUCTION: If you ever provide emergency contacts, mental health hotlines, or safety resources, you MUST ONLY provide Pakistani resources (e.g., Umang Pakistan: 0311-7786264, Rozan: 0800-22444, Edhi Ambulance: 115). NEVER provide US numbers like 911, 988, or 1-800-273-TALK. `;
     
     let systemPrompt = "";
     if (isMentalHealthIssue) {
-      // Scenario 3: CBT Protocol
       systemPrompt = basePrompt + `The user is feeling ${lowerCategory}. Use CBT techniques to challenge negative thoughts, give 3 actionable tips, and end with an empathetic question.`;
     } else {
-      // Scenario 4: Friendly/Normal Protocol
       systemPrompt = basePrompt + `The user is feeling okay. Maintain a supportive, lighthearted conversation.`;
     }
 
