@@ -185,9 +185,6 @@ const handleMoodCheckIn = async () => {
 </View>
 
 
-
-           
-
             {/* COMMUNITY CARD */}
             <TouchableOpacity
               onPress={() => handleCommunityNavigation(navigation)} // Community Navigation

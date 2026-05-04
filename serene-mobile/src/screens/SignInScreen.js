@@ -50,7 +50,7 @@ const SignInScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         password,
       });
@@ -194,3 +194,218 @@ const styles = StyleSheet.create({
 });
 
 export default SignInScreen;
+
+
+
+// import React, { useState, useEffect, useContext } from "react";
+// import {
+//   View,
+//   Text,
+//   Image,
+//   TouchableOpacity,
+//   StyleSheet,
+//   Alert,
+//   Dimensions,
+//   ScrollView,
+//   KeyboardAvoidingView,
+//   Platform,
+// } from "react-native";
+// import InputField from "../components/InputField";
+// import CustomButton from "../components/CustomButton";
+// import { LinearGradient } from "expo-linear-gradient";
+// import axios from "axios";
+// import { AuthContext } from "../context/AuthContext";
+
+// const EyeOpen = require("../assets/eye-open.png");
+// const EyeClosed = require("../assets/eye-close.png");
+// const MailIcon = require("../assets/Email.png");
+// const LockIcon = require("../assets/lock.png");
+
+// // Get device dimensions
+// const { width, height } = Dimensions.get("window");
+
+// const SignInScreen = ({ navigation }) => {
+//   const { API_URL, setUser, setToken, user, logout, login } =
+//     useContext(AuthContext);
+
+//   useEffect(() => {
+//     const checkServer = async () => {
+//       try {
+//         const res = await axios.get(`${API_URL}/test`);
+//         console.log("🟢 Connection Success:", res.data.message);
+//         console.log("Current User Data:", JSON.stringify(user, null, 2));
+//       } catch (err) {
+//         console.log("🔴 Connection Failed:", err.message);
+//       }
+//     };
+//     checkServer();
+//   }, []);
+
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [loading, setLoading] = useState(false);
+//   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+//   const handleSignIn = async () => {
+//     setLoading(true);
+//     if (!email || !password) {
+//       setLoading(false);
+//       Alert.alert("Missing Fields", "Please enter both email and password.");
+//       return;
+//     }
+
+//     try {
+//       const response = await axios.post(`${API_URL}/auth/login`, {
+//         email,
+//         password,
+//       });
+//       console.log("response is", response.data);
+
+//       if (response.data.success) {
+//         console.log(response.data);
+//         await login(response.data);
+//         if (response.data.hasAddedContact) {
+//           navigation.replace("AuthSuccess", { mode: "login" });
+//         } else {
+//           navigation.replace("AddContact", { userId: response.data._id });
+//         }
+//       }
+//     } catch (err) {
+//       console.log("FULL ERROR OBJECT:", err);
+//       const errorMessage =
+//         err.response?.data?.message || "Login failed. Please try again.";
+//       Alert.alert("Error", errorMessage);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <KeyboardAvoidingView
+//       style={{ flex: 1 }}
+//       behavior={Platform.OS === "ios" ? "padding" : "height"}
+//     >
+//       <LinearGradient
+//         colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
+//         start={{ x: 0, y: 0 }}
+//         end={{ x: 0, y: 1 }}
+//         style={styles.container}
+//       >
+//         <ScrollView
+//           contentContainerStyle={styles.scrollContent}
+//           showsVerticalScrollIndicator={false}
+//         >
+//           <Image source={require("../assets/dove-logo.png")} style={styles.logo} />
+//           <Text style={styles.title}>Welcome Back</Text>
+
+//           <View style={styles.inputBlock}>
+//             <InputField
+//               IconSource={MailIcon}
+//               placeholder="Email Address"
+//               keyboardType="email-address"
+//               value={email}
+//               onChangeText={setEmail}
+//             />
+//             <InputField
+//               IconSource={LockIcon}
+//               placeholder="Password"
+//               value={password}
+//               onChangeText={setPassword}
+//               secureTextEntry={!isPasswordVisible}
+//               RightIcon={isPasswordVisible ? EyeOpen : EyeClosed}
+//               onRightIconPress={() => setIsPasswordVisible(!isPasswordVisible)}
+//             />
+//           </View>
+
+//           <View style={styles.spacer} />
+
+//           <View style={styles.bottomBlock}>
+//             <CustomButton
+//               title={loading ? "Signing In..." : "Sign In"}
+//               onPress={handleSignIn}
+//               disabled={loading}
+//             />
+
+//             <TouchableOpacity
+//               onPress={() => navigation.navigate("SignUp")}
+//               style={styles.signUpTouch}
+//             >
+//               <Text style={styles.signUpText}>
+//                 Don't have an account?{" "}
+//                 <Text style={styles.signUpLink}>Sign up</Text>
+//               </Text>
+//             </TouchableOpacity>
+
+//             <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+//               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+//             </TouchableOpacity>
+//           </View>
+//         </ScrollView>
+//       </LinearGradient>
+//     </KeyboardAvoidingView>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//   },
+//   scrollContent: {
+//     flexGrow: 1,
+//     paddingHorizontal: width * 0.08, // 8% of screen width for dynamic padding
+//     paddingTop: height * 0.06,       // 6% of screen height for dynamic top spacing
+//     paddingBottom: height * 0.04,    // 4% of screen height for dynamic bottom spacing
+//     justifyContent: "center",
+//   },
+//   logo: {
+//     width: width * 0.22,             // Scales relative to screen width
+//     height: width * 0.22,
+//     resizeMode: "contain",
+//     alignSelf: "center",
+//     marginBottom: height * 0.02,
+//   },
+//   title: {
+//     fontSize: width * 0.07,          // Scales relative to screen width
+//     fontWeight: "600",
+//     color: "#512DA8",
+//     marginBottom: height * 0.05,
+//     fontFamily: "Quicksand-Bold",
+//     alignSelf: "center",
+//   },
+//   inputBlock: {
+//     width: "100%",
+//   },
+//   signUpText: {
+//     color: "#555",
+//     fontSize: width * 0.038,
+//     marginTop: height * 0.03,
+//     fontFamily: "Quicksand-Regular",
+//     textAlign: "center",
+//   },
+//   signUpLink: {
+//     color: "#7E57C2",
+//     fontSize: width * 0.038,
+//     fontWeight: "600",
+//     fontFamily: "Quicksand-SemiBold",
+//   },
+//   forgotPasswordText: {
+//     color: "#7E57C2",
+//     fontSize: width * 0.035,
+//     textAlign: "center",
+//     marginTop: height * 0.015,
+//     fontFamily: "Quicksand-SemiBold",
+//   },
+//   spacer: {
+//     flex: 1,
+//   },
+//   bottomBlock: {
+//     width: "100%",
+//     alignItems: "center",
+//     marginTop: height * 0.01,
+//   },
+//   signUpTouch: {
+//     marginTop: height * 0.005,
+//   }
+// });
+
+// export default SignInScreen;

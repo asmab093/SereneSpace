@@ -4,8 +4,11 @@ import { Asset } from "expo-asset";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator, CardStyleInterpolators } from "@react-navigation/stack"; // ✅ Added CardStyleInterpolators
-import { AuthProvider, AuthContext } from "./src/context/AuthContext"; 
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+} from "@react-navigation/stack"; // ✅ Added CardStyleInterpolators
+import { AuthProvider, AuthContext } from "./src/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
@@ -17,15 +20,15 @@ import SignInScreen from "./src/screens/SignInScreen";
 import AuthSuccessScreen from "./src/screens/AuthSuccessScreen";
 import AddContactScreen from "./src/screens/AddContactScreen";
 import HomeScreen from "./src/screens/HomeScreen";
-import Questionnaire1 from './src/screens/Questionnaire1';
-import Questionnaire2 from './src/screens/Questionnaire2';
-import Questionnaire3 from './src/screens/Questionnaire3';
-import Questionnaire4 from './src/screens/Questionnaire4';
-import Questionnaire5 from './src/screens/Questionnaire5'; // ⬅️ ADD THIS
-import Questionnaire6 from './src/screens/Questionnaire6'; // ⬅️ ADD THIS
-import Questionnaire7 from './src/screens/Questionnaire7'; // ⬅️ ADD THIS
-import MoodStatsScreen from './src/screens/MoodStatsScreen';
-import PersonalizedRecommendationsScreen from './src/screens/PersonalizedRecommendationScreen';
+import Questionnaire1 from "./src/screens/Questionnaire1";
+import Questionnaire2 from "./src/screens/Questionnaire2";
+import Questionnaire3 from "./src/screens/Questionnaire3";
+import Questionnaire4 from "./src/screens/Questionnaire4";
+import Questionnaire5 from "./src/screens/Questionnaire5"; // ⬅️ ADD THIS
+import Questionnaire6 from "./src/screens/Questionnaire6"; // ⬅️ ADD THIS
+import Questionnaire7 from "./src/screens/Questionnaire7"; // ⬅️ ADD THIS
+import MoodStatsScreen from "./src/screens/MoodStatsScreen";
+import PersonalizedRecommendationsScreen from "./src/screens/PersonalizedRecommendationScreen";
 import QuizCompletionScreen from "./src/screens/QuizCompletionScreen";
 import TermsAndConditionsScreen from "./src/screens/Terms&ConditionScreen";
 import PrivacyPolicyScreen from "./src/screens/PrivacyPolicyScreen";
@@ -39,7 +42,7 @@ import CrisisSupportScreen from "./src/screens/CrisisSupportScreen";
 import ChatBotScreen from "./src/screens/ChatBotScreen";
 import CustomDrawer from "./src/components/CustomDrawer";
 import GeneralRecommendationsScreen from "./src/screens/GeneralRecommendation1";
-import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
+import VideoPlayerScreen from "./src/screens/VideoPlayerScreen";
 const requiredImages = [
   require("./src/assets/BackIcon.png"),
   require("./src/assets/AccountsSecurityIcon.png"),
@@ -220,7 +223,10 @@ const AppMain = () => {
           <Stack.Screen name="SignIn" component={SignInScreen} />
           <Stack.Screen name="AuthSuccess" component={AuthSuccessScreen} />
           <Stack.Screen name="AddContact" component={AddContactScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
 
           {/* Main App */}
           <Stack.Screen name="Home" component={HomeScreen} />
@@ -236,51 +242,54 @@ const AppMain = () => {
           <Stack.Screen name="QuizComplete" component={QuizCompletionScreen} />
 
           {/* Support & Community */}
-         
+
           <Stack.Screen name="WritePost" component={WritePostScreen} />
 
           {/* Profile & Stats */}
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="MoodStats" component={MoodStatsScreen} />
-          <Stack.Screen name="PersonalRecs" component={PersonalizedRecommendationsScreen} />
-          <Stack.Screen name="GeneralRecs" component={GeneralRecommendationsScreen} />
+          <Stack.Screen
+            name="PersonalRecs"
+            component={PersonalizedRecommendationsScreen}
+          />
+          <Stack.Screen
+            name="GeneralRecs"
+            component={GeneralRecommendationsScreen}
+          />
 
           {/* Legal */}
           <Stack.Screen name="Terms" component={TermsAndConditionsScreen} />
           <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} />
 
           {/* Accounts related */}
-          <Stack.Screen name="AccountSecurity" component={AccountSecurityScreen} />
+          <Stack.Screen
+            name="AccountSecurity"
+            component={AccountSecurityScreen}
+          />
 
           {/* Chatbot */}
           <Stack.Screen name="ChatBot" component={ChatBotScreen} />
 
           {/* Community Creation */}
           <Stack.Screen
-            name="CommunityProfileCreation" 
+            name="CommunityProfileCreation"
             component={CommunityProfileCreation}
           />
-          <Stack.Screen 
+          <Stack.Screen
             name="CommunityGroups"
             component={CommunityGroupSelectionScreen}
           />
-          <Stack.Screen
-            name="GroupDetail"
-            component={GroupDetailScreen}
-          />
-          <Stack.Screen 
-  name="CrisesSupport" 
-  component={CrisisSupportScreen} 
-/>
+          <Stack.Screen name="GroupDetail" component={GroupDetailScreen} />
+          <Stack.Screen name="CrisisSupport" component={CrisisSupportScreen} />
 
-<Stack.Screen 
-    name="VideoPlayer" 
-    component={VideoPlayerScreen} 
-    options={{ 
-        presentation: 'modal',
-        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS // Slide up effect
-    }} 
-  />
+          <Stack.Screen
+            name="VideoPlayer"
+            component={VideoPlayerScreen}
+            options={{
+              presentation: "modal",
+              cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS, // Slide up effect
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast />

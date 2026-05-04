@@ -52,7 +52,7 @@ const WritePostScreen = ({ navigation,route }) => {
     setLoading(true);
     console.log("handle Post press triggered");
     try {
-      await axios.post(`${API_URL}/api/posts`, {
+      await axios.post(`${API_URL}/posts`, {
         content: body,
         group: groupId,
         isAnonymous:isAnonymous

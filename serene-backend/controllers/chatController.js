@@ -9,7 +9,19 @@ const { classifyMessage } = require("../utils/classifier");
 exports.getChatHistory = async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, message: "Not authorized" });
-    const history = await Message.find({ user: req.user.id }).sort({ createdAt: 1 });
+    
+    let history = await Message.find({ user: req.user.id }).sort({ createdAt: 1 });
+
+    // ✅ NEW: If the user has no history, create and return an initial welcome message
+    if (history.length === 0) {
+      const welcomeMessage = await Message.create({
+        user: req.user.id,
+        text: "Hi! I'm SereneBot, your compassionate mental health companion. How are you feeling today?",
+        sender: "bot"
+      });
+      history = [welcomeMessage];
+    }
+
     res.status(200).json({ success: true, history });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -27,7 +39,7 @@ exports.getChatResponse = async (req, res) => {
     const lowerCategory = category.toLowerCase();
     const isMentalHealthIssue = ["stress", "anxiety", "depression"].includes(lowerCategory);
 
-    // ⬅️ TWEAK 1: Save the message to a variable to exclude it from the cooldown check
+    // Save the message to a variable to exclude it from the cooldown check
     const savedUserMessage = await Message.create({
       user: req.user.id,
       text: message,
@@ -47,16 +59,11 @@ exports.getChatResponse = async (req, res) => {
       
       await Message.create({ user: req.user.id, text: crisisReply, sender: "bot" });
 
-      // ---------------------------------------------------------
-      // 🕒 NEW: 15-MINUTE COOLDOWN LOGIC
-      // ---------------------------------------------------------
+      // 🕒 15-MINUTE COOLDOWN LOGIC
       let smsSuccessfullySent = false;
-      
       const FIFTEEN_MINUTES = 15 * 60 * 1000;
       const cutoffTime = new Date(Date.now() - FIFTEEN_MINUTES);
 
-      // Check if this specific user has triggered an alert in the last 15 mins
-      // (_id: { $ne: savedUserMessage._id } ensures we don't count the message they JUST sent)
       const recentCrisis = await Message.findOne({
         user: req.user.id,
         isSuicidal: true,
@@ -73,9 +80,7 @@ exports.getChatResponse = async (req, res) => {
           
           if (currentUser && currentUser.emergencyContact && currentUser.emergencyContact.phone) {
             const contact = currentUser.emergencyContact;
-            
             let fullPhoneNumber = `${contact.countryCode}${contact.phone}`.replace("+", "");
-            
             const patientName = currentUser.username || "A user"; 
 
             const whatsappPayload = {
@@ -84,9 +89,7 @@ exports.getChatResponse = async (req, res) => {
               type: "template",
               template: {
                 name: "emergency_alert_v1", 
-                language: {
-                  code: "en"
-                },
+                language: { code: "en" },
                 components: [
                   {
                     type: "body",
@@ -122,7 +125,6 @@ exports.getChatResponse = async (req, res) => {
           console.error("❌ Failed to send WhatsApp Alert:", apiError.response?.data || apiError.message);
         }
       }
-      // ---------------------------------------------------------
 
       return res.status(200).json({ 
         reply: crisisReply,
@@ -134,8 +136,9 @@ exports.getChatResponse = async (req, res) => {
       });
     }
 
-    // 🧠 SCENARIO 3 & 4: NO CRISIS
-    const basePrompt = `You are SereneBot, a compassionate mental health AI operating in Islamabad, Pakistan. CRITICAL SAFETY INSTRUCTION: If you ever provide emergency contacts, mental health hotlines, or safety resources, you MUST ONLY provide Pakistani resources (e.g., Umang Pakistan: 0311-7786264, Rozan: 0800-22444, Edhi Ambulance: 115). NEVER provide US numbers like 911, 988, or 1-800-273-TALK. `;
+    const basePrompt = `You are SereneBot, a compassionate and concise mental health AI operating in Islamabad, Pakistan. 
+    CRITICAL LENGTH INSTRUCTION: Keep all responses brief, warm, and engaging. Do not write long paragraphs; limit responses to 4-6 short sentences or 3-4 brief bullet points.
+    CRITICAL SAFETY INSTRUCTION: If you provide emergency contacts or resources, ONLY provide Pakistani resources (e.g., Umang Pakistan: 0311-7786264, Rozan: 0800-22444, Edhi Ambulance: 115). Never provide US numbers like 911, 988, or 1-800-273-TALK. Keep the conversation focused strictly on mental health.`;
     
     let systemPrompt = "";
     if (isMentalHealthIssue) {

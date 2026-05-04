@@ -96,7 +96,7 @@ const PostCard = ({
     setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
 
     try {
-      await axios.put(`${API_URL}/api/posts/${post._id}/like`, { action });
+      await axios.put(`${API_URL}/posts/${post._id}/like`, { action });
     } catch (error) {
       setIsLiked(!newLikedState);
       setLikeCount((prev) => (!newLikedState ? prev + 1 : prev - 1));

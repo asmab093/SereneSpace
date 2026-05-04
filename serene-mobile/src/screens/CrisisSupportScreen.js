@@ -41,11 +41,11 @@ const CrisisSupportScreen = ({ navigation, route }) => {
     setLoading(true);
     try {
       if (activeTab === "hotlines") {
-        const res = await axios.get(`${API_URL}/api/support/hotlines`);
+        const res = await axios.get(`${API_URL}/support/hotlines`);
         setHotlines(res.data.data);
       } else {
         const res = await axios.get(
-          `${API_URL}/api/support/professionals?search=${searchQuery}`,
+          `${API_URL}/support/professionals?search=${searchQuery}`,
         );
         setProfessionals(res.data.data);
       }

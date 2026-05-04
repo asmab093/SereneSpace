@@ -98,7 +98,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
     try {
       // 1. Save to Backend (MongoDB)
       const response = await axios.put(
-        `${API_URL}/api/users/joined-groups`,
+        `${API_URL}/users/joined-groups`,
         { groups: combinedGroups },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -129,7 +129,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
     const updatedGroups = user.joinedGroups.filter((id) => id !== groupId);
     try {
       const response = await axios.put(
-        `${API_URL}/api/users/joined-groups`,
+        `${API_URL}/users/joined-groups`,
         { groups: updatedGroups },
         { headers: { Authorization: `Bearer ${token}` } },
       );
