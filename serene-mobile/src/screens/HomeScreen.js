@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     tintColor: "#512DA8",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#512DA8",
     fontFamily: "Quicksand-SemiBold",
     textAlign: "center",

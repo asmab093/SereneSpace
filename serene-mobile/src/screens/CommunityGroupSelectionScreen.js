@@ -359,32 +359,29 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
 
- header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    backgroundColor: "#FFFFFF", 
-    paddingBottom: 15, 
-    elevation: 4, 
-    width: "100%", 
-    marginBottom: 10,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    backgroundColor: "#FFFFFF",
+    paddingBottom: 15,
+    elevation: 4,
+    width: "100%",
+    marginBottom: 5,
   },
-  backButton: { 
-    padding: 0, 
-    marginRight: 0 
-  }, 
-  backIcon: { 
-    width: 24, 
-    height: 24, 
-    tintColor: "#512DA8", 
-    resizeMode: 'contain' 
-  }, 
-  headerTitle: { 
-    flex: 1,              
-    fontSize: 18, 
-    color: "#512DA8", 
-    fontFamily: "Quicksand-Bold", 
-    marginLeft: 15 
+  backButton: { padding: 0, marginRight: 0 },
+  backIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#512DA8",
+    resizeMode: "contain",
+  },
+  headerTitle: {
+    fontSize: 18,
+    color: "#512DA8",
+    marginLeft: 15,
+    fontFamily: "Quicksand-Bold",
+    flex: 1,
   },
   headerRightIcons: {
     flexDirection: "row",

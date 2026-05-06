@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 10,
+    top: 25,
     right: 10,
     padding: 10,
     zIndex: 12,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
   greetingText: {
     marginTop: -60,
-    fontSize: 22,
+    fontSize: 18,
     // fontWeight: "bold",
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   aboutUsHeader: {
-    fontSize: 16,
+    fontSize: 14,
     // fontWeight: "bold",
     color: "#A3A3A3",
     fontFamily: "Quicksand-Bold",
