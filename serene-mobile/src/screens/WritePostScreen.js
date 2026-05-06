@@ -14,11 +14,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 const BackIcon = require("../assets/BackIcon.png");
 // const AvatarIcon = require("../assets/woman.png"); // User's profile image
 
 const WritePostScreen = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const { user, API_URL, token } = useContext(AuthContext);
   const { groupTitle, groupId } = route.params || {}; // Pass these from GroupDetail
   // 1. REMOVED: State for 'title' is no longer needed but kept for handler logic update
@@ -79,7 +82,7 @@ const WritePostScreen = ({ navigation, route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.headerButton}

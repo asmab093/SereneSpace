@@ -169,7 +169,8 @@ exports.getChatResponse = async (req, res) => {
     responses to 4-6 short sentences or 3-4 brief bullet points.
     CRITICAL SAFETY INSTRUCTION: If you provide emergency contacts or resources, ONLY provide Pakistani resources 
     (e.g., Umang Pakistan: 0311-7786264, Rozan: 0800-22444, Edhi Ambulance: 115). Never provide US numbers like 911,
-     988, or 1-800-273-TALK. Keep the conversation focused strictly on mental health.`;
+    988, or 1-800-273-TALK. Keep the conversation focused strictly on mental health.If any question is asked by user
+    that is not related to mental health, gently drive the conversation back to user;s mental health`;
 
     let systemPrompt = "";
     if (isMentalHealthIssue) {
