@@ -8,6 +8,7 @@ import { BASE_URL } from '../api/config';
 const SunflowerIcon = require("../assets/SunflowerIcon.png");
 const WarningIcon = require("../assets/WarningIcon.png");
 const BackIcon = require("../assets/BackIcon.png");
+const LockIcon = require("../assets/lockYellow.png");
 
 const PersonalizedRecommendationsScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -110,8 +111,8 @@ const PersonalizedRecommendationsScreen = ({ navigation, route }) => {
           ) : (
             /* ✅ NEW: Locked State View */
             <View style={styles.emptyContainer}>
-              <Text style={styles.lockEmoji}>🔒</Text>
-              <Text style={styles.emptyTextHeader}>Recommendations Locked</Text>
+              <Image source={LockIcon} style={styles.lockImage} />
+              <Text style={styles.emptyTextHeader}>Recommendations Locked!</Text>
               <Text style={styles.emptyText}>Log your mood for at least 5 days to unlock personalized insights! 🌟</Text>
             </View>
           )}
@@ -141,7 +142,7 @@ const PersonalizedRecommendationsScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
+  scrollContent: { flexGrow: 1 },
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -197,7 +198,16 @@ const styles = StyleSheet.create({
   tryBtn: { backgroundColor: '#7B61FF', paddingHorizontal: 35, paddingVertical: 12, borderRadius: 12 },
   tryText: { color: '#FFF', fontFamily: 'Quicksand-Bold', fontSize: 16 },
   
-  resourceSection: { marginTop: 30, padding: 30, borderTopLeftRadius: 40, borderTopRightRadius: 40, alignItems: 'center' },
+ resourceSection: { 
+    marginTop: 30, 
+    padding: 30, 
+    paddingBottom: 50,           
+    borderTopLeftRadius: 40, 
+    borderTopRightRadius: 40, 
+    alignItems: 'center',
+    flex: 1,                     
+    justifyContent: 'flex-end'   
+  },
   resourceHeader: { color: '#512DA8', fontFamily: 'Quicksand-Bold', marginBottom: 20, fontSize: 16 },
   actionBtn: { backgroundColor: '#7B61FF', width: '90%', padding: 15, borderRadius: 18, marginBottom: 15, alignItems: 'center' },
   actionBtnText: { color: '#FFF', fontFamily: 'Quicksand-Bold', fontSize: 16 },
@@ -212,9 +222,26 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginHorizontal: 20
   },
-  lockEmoji: { fontSize: 40, marginBottom: 10 },
-  emptyTextHeader: { fontFamily: 'Quicksand-Bold', color: '#512DA8', fontSize: 18, marginBottom: 5 },
-  emptyText: { fontFamily: 'Quicksand-Medium', color: '#7B61FF', textAlign: 'center', lineHeight: 20 }
+  lockImage: { 
+    width: 40, 
+    height: 40, 
+    resizeMode: 'contain', 
+    marginBottom: 10 
+  },
+  emptyTextHeader: {
+    color: "#444",                  
+    fontFamily: "Quicksand-Bold",   
+    fontSize: 14,                   
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  emptyText: {
+    color: "#666",                 
+    fontFamily: "Quicksand-Medium", 
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 5,
+  },
 });
 
 export default PersonalizedRecommendationsScreen;

@@ -16,11 +16,13 @@ import { AuthContext } from "../context/AuthContext";
 import { useContext } from "react";
 import axios from "axios"; //
 import ReplyModal from "../components/ReplyModal"; //
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
 const WritePostIcon = require("../assets/WritePostIcon.png");
 
 const GroupDetailScreen = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const { user, API_URL, token } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
   // const isMember = isGroupJoined(groupTitle);
@@ -171,7 +173,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -182,9 +184,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <View style={styles.headerGroupInfo}>
-          <Text style={styles.headerTitle}>{groupTitle}</Text>
-        </View>
+        <Text style={styles.headerTitle}>{groupTitle}</Text>
       </View>
 
       <TouchableOpacity
@@ -239,32 +239,41 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
 
   // --- Header ---
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 40,
-    paddingHorizontal: 15,
-    backgroundColor: "#D7D9F4",
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+  // --- Header ---
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    backgroundColor: "#D7D9F4", 
+    paddingBottom: 15, 
+    elevation: 4, 
+    width: "100%", 
+    marginBottom: 10,
   },
-  backButton: { padding: 5 },
-  backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
+  backButton: { 
+    padding: 0, 
+    marginRight: 0 
+  }, 
+  backIcon: { 
+    width: 24, 
+    height: 24, 
+    tintColor: "#512DA8", 
+    resizeMode: 'contain' 
+  }, 
+  headerTitle: { 
+    flex: 1, 
+    fontSize: 18, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    marginLeft: 15 
+  },
   headerGroupInfo: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: 10,
   },
 
-  headerTitle: {
-    fontSize: 18,
-    // fontWeight: "bold",
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
-    marginRight: 5,
-  },
-
+  
   // --- Scroll Content ---
   scrollContent: {
     paddingHorizontal: 20,

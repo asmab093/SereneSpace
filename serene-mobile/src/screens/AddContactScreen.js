@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   infoButton: {
     position: "absolute",
-    top: 50,
+    top: 30,
     right: 25,
     zIndex: 10,
   },

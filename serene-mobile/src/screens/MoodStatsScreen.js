@@ -16,6 +16,7 @@ const GoodIcon = require("../assets/GoodIcon.png");
 const OkayIcon = require("../assets/OkayIcon.png");
 const BadIcon = require("../assets/BadIcon.png");
 const TerribleIcon = require("../assets/TerribleIcon.png");
+const LockIcon = require("../assets/lockYellow.png");
 
 const MoodStatsScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -172,7 +173,7 @@ const MoodStatsScreen = ({ navigation }) => {
           <View style={styles.whiteCard}>
             {stats?.chartLocked ? (
               <View style={styles.lockContent}>
-                <Text style={styles.lockEmoji}>🔒</Text>
+                <Image source={LockIcon} style={styles.lockImage} />
                 <Text style={styles.cardHeader}>Insight Chart Locked</Text>
                 <Text style={styles.lockMessage}>
                   {timeframe === "lastWeek" ? "Not enough data from last week." : "Log your mood today to start your chart!"}
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
   btnText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Quicksand-Bold" },
   footerWrapper: { position: 'absolute', bottom: 0, width: '100%' },
   lockContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 30 },
-  lockEmoji: { fontSize: 40, marginBottom: 10 },
+  lockImage: { width: 50, height: 50, resizeMode: 'contain', marginBottom: 10 }, // <-- Add this
   lockMessage: { fontFamily: "Quicksand-Medium", color: "#666", textAlign: 'center' }
 });
 

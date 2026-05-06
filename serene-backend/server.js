@@ -1,4 +1,6 @@
 const dns = require('node:dns');
+// New line added
+dns.setDefaultResultOrder('ipv4first');
 dns.setServers(['8.8.8.8', '8.8.4.4']); // Force Google DNS to resolve MongoDB Atlas
 const moodRoutes = require('./routes/moodRoutes.js');
 const express = require('express');

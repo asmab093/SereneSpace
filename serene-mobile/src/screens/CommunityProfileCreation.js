@@ -9,6 +9,7 @@ import AvatarSelector from "../components/AvatarSelector";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios"; 
 import { useRoute } from "@react-navigation/native"; 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
 const FoxAvatar = require("../assets/flower.png");
@@ -36,6 +37,7 @@ const avatarOptions = [
 ];
 
 const CommunityProfileCreation = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { user,setUser, API_URL, token } = useContext(AuthContext);
   const route = useRoute();
   const [bioText, setBioText] = useState(user?.communityProfile?.bio || "");
@@ -108,8 +110,7 @@ const CommunityProfileCreation = ({ navigation }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
-        {/*  FIXED: Use navigation.goBack() */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -120,6 +121,7 @@ const CommunityProfileCreation = ({ navigation }) => {
             resizeMode="contain"
           />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Community Profile</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -180,31 +182,37 @@ const CommunityProfileCreation = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
-  header: {
-    width: "100%",
-    paddingTop: 40,
-    paddingHorizontal: 10,
-    marginBottom: 0,
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    backgroundColor: "#FFFFFF", 
+    paddingBottom: 15, 
+    elevation: 4, 
+    width: "100%", 
+    marginBottom: 10,
   },
-  backButton: {
-    padding: 5,
-    alignSelf: "flex-start",
-  },
-  backIcon: {
-    width: 30,
-    height: 30,
-    tintColor: "#512DA8",
+  backButton: { 
+    padding: 0, 
+    marginRight: 0 
+  }, 
+  backIcon: { 
+    width: 24, 
+    height: 24, 
+    tintColor: "#512DA8", 
+    resizeMode: 'contain' 
+  }, 
+  headerTitle: { 
+    fontSize: 18, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    marginLeft: 15 
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 20,
-    color: "#512DA8",
-    fontFamily: "Quicksand-Bold",
-    marginBottom: 10,
-  },
+ 
   section: {
     marginBottom: 10,
     width: "100%",

@@ -241,14 +241,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 15,
     left: 5,
     padding: 10,
     zIndex: 1,
   },
   backIcon: {
-    width: 30,
-    height: 30,
+    width: 35,
+    height: 35,
     tintColor: "#512DA8",
   },
   profileInfo: {

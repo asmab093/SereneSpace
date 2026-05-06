@@ -16,6 +16,7 @@ import CustomCheckbox from "../components/CustomCheckBox"; // ⬅️ ASSUMED: Th
 import CommunityInfoPopup from "../components/CommunityInfoPopup";
 import JoinSuccessPopup from "../components/JoinSuccessPopup";
 import { AuthContext } from "../context/AuthContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
 const InfoIcon = require("../assets/InfoIcon.png");
@@ -66,6 +67,7 @@ const GROUPS_DATA = [
 ];
 
 const CommunityGroupSelectionScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { user, setUser, API_URL, token } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("browse"); // 'browse' as default
@@ -266,7 +268,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -357,27 +359,32 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "#FFFFFF",
-    paddingBottom: 15,
-    elevation: 4,
-    width: "100%",
-    // borderWidth:1,
+ header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    backgroundColor: "#FFFFFF", 
+    paddingBottom: 15, 
+    elevation: 4, 
+    width: "100%", 
+    marginBottom: 10,
   },
-  backButton: { padding: 0, marginRight: 0 },
-  backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
-  headerTitle: {
-    fontSize: 18,
-    // fontWeight: "bold",
-    color: "#512DA8",
-    marginLeft: 15,
-    fontFamily: "Quicksand-Bold",
-    flex: 1,
+  backButton: { 
+    padding: 0, 
+    marginRight: 0 
+  }, 
+  backIcon: { 
+    width: 24, 
+    height: 24, 
+    tintColor: "#512DA8", 
+    resizeMode: 'contain' 
+  }, 
+  headerTitle: { 
+    flex: 1,              
+    fontSize: 18, 
+    color: "#512DA8", 
+    fontFamily: "Quicksand-Bold", 
+    marginLeft: 15 
   },
   headerRightIcons: {
     flexDirection: "row",

@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   buttonArrowIcon: { width: 18, height: 18, marginRight: 8 },
   tryButton: {
-    width: 250, borderRadius: 25, marginBottom: 10, alignSelf: "center", marginTop: 10, alignItems: "center",
+    width: 250, borderRadius: 25, marginBottom: 30, alignSelf: "center", marginTop: 10, alignItems: "center",
   },
   tryButtonText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Quicksand-SemiBold" },
 });

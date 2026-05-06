@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     flexGrow: 1, 
     alignItems: "center", 
     paddingHorizontal: 25, 
-    paddingTop: 50, // ✅ Increased to 50 to safely clear the notch/status bar
+    paddingTop: 30, 
     paddingBottom: 40 
   },
   topBar: { 
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     marginBottom: 10, 
     marginTop: 0 // ✅ Set to 0 since paddingTop now handles the spacing
   },
-  closeButton: { padding: 5, paddingLeft: 0 },
+  closeButton: { padding: 5, paddingLeft: 0,},
   closeIcon: { width: 25, height: 25, tintColor: "#555" },
   headerIllustration: { width: "70%", height: 130, marginBottom: 10 },
   screenTitle: { 
