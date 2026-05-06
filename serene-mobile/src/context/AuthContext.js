@@ -7,9 +7,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const API_URL = "http://10.0.2.2:5000/api";
+  // const API_URL = "http://10.0.2.2:5000/api";
   //  = "http://10.94.247.196:5000/api";
-  // const API_URL = "http://192.168.1.11:5000/api"; // Use this for Android emulator
+  const API_URL = "http://192.168.1.7:5000/api"; // Use this for Android emulator
 
   // ✅ HELPER: Check if user is a member of a group
   // Returns true if the groupTitle exists in the user's joinedGroups array

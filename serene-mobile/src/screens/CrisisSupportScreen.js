@@ -14,9 +14,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import CommunityTabButton from "../components/CommunityTabButton"; // Reused for tabs
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
-const PhoneIcon = require("../assets/phone-call.png"); 
+const PhoneIcon = require("../assets/phone-call.png");
 const TimeIcon = require("../assets/clock.png"); // Icon for time/schedule
 const UserGroupIcon = require("../assets/group.png"); // Icon for Counselors/Volunteers
 const WebsiteIcon = require("../assets/global.png"); // Icon for website link
@@ -26,6 +27,7 @@ const WhatsappIcon = require("../assets/MessageIcon.png");
 const CallIcon2 = require("../assets/phone-call.png");
 
 const CrisisSupportScreen = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   // Use the initialTab prop to set the starting state
   //EXTRACTION: Get initial tab from route params, fallback to 'hotlines'
   const { API_URL } = useContext(AuthContext);
@@ -301,7 +303,7 @@ const CrisisSupportScreen = ({ navigation, route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -362,29 +364,32 @@ const styles = StyleSheet.create({
     color: "#8b0fa4",
   },
   header: {
+    // paddingTop: 10,
     // flexDirection: "row",
     // alignItems: "center",
-    paddingTop: 5,
     // paddingHorizontal: 15,
-    // height: 60,
-    // marginTop: 20,
-    //  backgroundColor: "#FFFFFF",
+    // backgroundColor: "#FFFFFF",
     // paddingBottom: 5,
-    // marginBottom:5,
-    // borderWidth:1,
+    // elevation: 4,
+    // width: "100%",
+    // marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
+    paddingTop: 5,
+    paddingBottom: 5,
     paddingHorizontal: 15,
     backgroundColor: "#FFFFFF",
-    paddingBottom: 5,
-    elevation: 4,
-    width: "100%",
-    marginBottom: 10,  
-
-
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    marginBottom: 6,
   },
   backButton: { padding: 5 },
-  backIcon: { width: 30, height: 30, tintColor: "#512DA8",resizeMode: "contain" },
+  backIcon: {
+    width: 30,
+    height: 30,
+    tintColor: "#512DA8",
+    resizeMode: "contain",
+  },
   headerTitle: {
     fontSize: 18,
     // fontWeight: "bold",
@@ -403,7 +408,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 20,
-    marginVertical: 2,
+    marginVertical: 1,
     // backgroundColor: '#F0F0F0',
     backgroundColor: "#fff",
     borderRadius: 10,

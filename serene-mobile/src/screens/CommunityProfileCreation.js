@@ -1,14 +1,23 @@
 import React, { useState, useContext } from "react";
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, 
-TextInput, Alert, ActivityIndicator
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
 import CustomButton from "../components/CustomButton";
 import AvatarSelector from "../components/AvatarSelector";
 import { AuthContext } from "../context/AuthContext";
-import axios from "axios"; 
-import { useRoute } from "@react-navigation/native"; 
+import axios from "axios";
+import { useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
 const FoxAvatar = require("../assets/flower.png");
@@ -23,7 +32,7 @@ const LadyAvatar = require("../assets/LadyAvatar.png");
 const PenguinAvatar = require("../assets/PenguinAvatar.png");
 
 const avatarOptions = [
-  { id: 1, source: FlowerAvatar},
+  { id: 1, source: FlowerAvatar },
   { id: 2, source: PersonAvatar },
   { id: 3, source: FoxAvatar },
   { id: 4, source: LeafAvatar },
@@ -36,10 +45,13 @@ const avatarOptions = [
 ];
 
 const CommunityProfileCreation = ({ navigation }) => {
-  const { user,setUser, API_URL, token } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
+  const { user, setUser, API_URL, token } = useContext(AuthContext);
   const route = useRoute();
   const [bioText, setBioText] = useState(user?.communityProfile?.bio || "");
-  const [selectedAvatarId, setSelectedAvatarId] = useState(user?.communityProfile?.avatarId || null);
+  const [selectedAvatarId, setSelectedAvatarId] = useState(
+    user?.communityProfile?.avatarId || null,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const isEditing = route.params?.isEditing || false; // Check if we came from Profile
 
@@ -61,18 +73,18 @@ const CommunityProfileCreation = ({ navigation }) => {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (response.data.success) {
         // DYNAMIC TOAST MESSAGE
         Toast.show({
-          type: 'success',
-          text1: isEditing ? 'Success! ✨' : 'Success! 🎉',
-          text2: isEditing 
-            ? 'Your community profile has been updated.' 
-            : 'Your community profile has been created.',
-          position: 'bottom',
+          type: "success",
+          text1: isEditing ? "Success! ✨" : "Success! 🎉",
+          text2: isEditing
+            ? "Your community profile has been updated."
+            : "Your community profile has been created.",
+          position: "bottom",
           visibilityTime: 3000,
         });
         // Update local context with the new user object from MongoDB
@@ -90,13 +102,13 @@ const CommunityProfileCreation = ({ navigation }) => {
       }
     } catch (error) {
       Toast.show({
-        type: 'error',
-        text1: 'Update Failed',
-        text2: 'Could not save your profile. Please try again.',
-        position: 'bottom',
+        type: "error",
+        text1: "Update Failed",
+        text2: "Could not save your profile. Please try again.",
+        position: "bottom",
       });
       console.error("Error saving profile:", error);
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -108,7 +120,7 @@ const CommunityProfileCreation = ({ navigation }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         {/*  FIXED: Use navigation.goBack() */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -120,11 +132,14 @@ const CommunityProfileCreation = ({ navigation }) => {
             resizeMode="contain"
           />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Community Profile</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>
-          {isEditing ? "Update your community presence." : "Let's create your profile and get started."}
+          {isEditing
+            ? "Update your community presence."
+            : "Let's create your profile and get started."}
         </Text>
 
         <View style={styles.section}>
@@ -181,26 +196,37 @@ const CommunityProfileCreation = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    backgroundColor: "#FFFFFF",
+    paddingBottom: 15,
+    elevation: 4,
     width: "100%",
-    paddingTop: 40,
-    paddingHorizontal: 10,
-    marginBottom: 0,
+    marginBottom: 10,
   },
   backButton: {
-    padding: 5,
-    alignSelf: "flex-start",
+    padding: 0,
+    marginRight: 0,
   },
   backIcon: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
     tintColor: "#512DA8",
+    resizeMode: "contain",
+  },
+  headerTitle: {
+    fontSize: 18,
+    color: "#512DA8",
+    fontFamily: "Quicksand-Bold",
+    marginLeft: 15,
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
     marginBottom: 10,
@@ -210,7 +236,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sectionHeader: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#333",
     fontFamily: "Quicksand-Bold",
     marginBottom: 5,

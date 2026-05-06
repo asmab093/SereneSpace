@@ -16,11 +16,13 @@ import { AuthContext } from "../context/AuthContext";
 import { useContext } from "react";
 import axios from "axios"; //
 import ReplyModal from "../components/ReplyModal"; //
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
 const WritePostIcon = require("../assets/WritePostIcon.png");
 
 const GroupDetailScreen = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
   const { user, API_URL, token } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
   // const isMember = isGroupJoined(groupTitle);
@@ -171,7 +173,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -182,9 +184,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <View style={styles.headerGroupInfo}>
-          <Text style={styles.headerTitle}>{groupTitle}</Text>
-        </View>
+        <Text style={styles.headerTitle}>{groupTitle}</Text>
       </View>
 
       <TouchableOpacity

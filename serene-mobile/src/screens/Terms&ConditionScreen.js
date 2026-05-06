@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // NOTE: Ensure these PNG assets exist in your src/assets/ folder:
 const BackIcon = require("../assets/BackIcon.png");
 const TermsIcon = require("../assets/Terms&ConditionScreenIcon.png"); // Header icon for Terms
 
   const TermsAndConditionsScreen = ({  navigation  }) => {
+  const insets = useSafeAreaInsets();
   return (
     <LinearGradient
       colors={["#fff", "#fff", "#fff"]}
@@ -21,7 +23,7 @@ const TermsIcon = require("../assets/Terms&ConditionScreenIcon.png"); // Header 
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Image
             source={BackIcon}

@@ -1,4 +1,3 @@
-
 import React, { useState, useContext } from "react";
 import {
   View,
@@ -8,19 +7,20 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Switch,Alert
+  Switch,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
 
-const BackIcon = require("../assets/BackIcon.png"); 
+const BackIcon = require("../assets/BackIcon.png");
 // const AvatarIcon = require("../assets/woman.png"); // User's profile image
 
-const WritePostScreen = ({ navigation,route }) => {
+const WritePostScreen = ({ navigation, route }) => {
   const { user, API_URL, token } = useContext(AuthContext);
-  const { groupTitle, groupId } = route.params || {};// Pass these from GroupDetail
+  const { groupTitle, groupId } = route.params || {}; // Pass these from GroupDetail
   // 1. REMOVED: State for 'title' is no longer needed but kept for handler logic update
   // const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -52,13 +52,17 @@ const WritePostScreen = ({ navigation,route }) => {
     setLoading(true);
     console.log("handle Post press triggered");
     try {
-      await axios.post(`${API_URL}/posts`, {
-        content: body,
-        group: groupId,
-        isAnonymous:isAnonymous
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(
+        `${API_URL}/posts`,
+        {
+          content: body,
+          group: groupId,
+          isAnonymous: isAnonymous,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
-      Toast.show({ type: 'success', text1: 'Posted successfully!' });
+      Toast.show({ type: "success", text1: "Posted successfully!" });
       navigation.goBack();
     } catch (error) {
       const serverMessage = error.response?.data?.message || "Failed to post.";
@@ -76,7 +80,10 @@ const WritePostScreen = ({ navigation,route }) => {
       style={styles.container}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerButton}
+        >
           <Image
             source={BackIcon}
             style={styles.BackIcon}
@@ -100,12 +107,18 @@ const WritePostScreen = ({ navigation,route }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.userInfoContainer}>
           {/* {console.log("avatar id", user?.communityProfile?.avatarId)} */}
-        <Image 
-          source={isAnonymous ? require("../assets/AnonymousUser.png") : getAvatarSource(user?.communityProfile?.avatarId)} 
-          style={styles.avatar} 
-        />
-        <Text style={styles.userName}>{isAnonymous ? "Anonymous" : user?.username}</Text>
-      </View>
+          <Image
+            source={
+              isAnonymous
+                ? require("../assets/AnonymousUser.png")
+                : getAvatarSource(user?.communityProfile?.avatarId)
+            }
+            style={styles.avatar}
+          />
+          <Text style={styles.userName}>
+            {isAnonymous ? "Anonymous" : user?.username}
+          </Text>
+        </View>
 
         <TextInput
           style={styles.bodyInput}
@@ -142,7 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 40,
+    paddingTop: 15,
     paddingHorizontal: 15,
     backgroundColor: "#D7D9F4",
     paddingBottom: 10,
@@ -198,7 +211,7 @@ const styles = StyleSheet.create({
   bodyInput: {
     borderWidth: 1,
     borderColor: "#EBE5F7",
-    borderRadius: 10, 
+    borderRadius: 10,
 
     fontSize: 16,
     color: "#333",

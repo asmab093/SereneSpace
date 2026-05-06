@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import Toast from "react-native-toast-message";
 import CustomButton from "../components/CustomButton";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BackIcon = require("../assets/BackIcon.png");
 
@@ -36,6 +37,7 @@ const AccountDetailRow = ({
 );
 
 const AccountSecurityScreen = ({ navigation }) => {
+   const insets = useSafeAreaInsets();
   // ✅ 1. Get the dynamic user data from Context
   const { user, setUser, login, API_URL } = useContext(AuthContext);
 
@@ -116,7 +118,7 @@ const AccountSecurityScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {/* ✅ 1. Header Section (Was missing from your return) */}
-      <View style={styles.header}>
+      <View  style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}

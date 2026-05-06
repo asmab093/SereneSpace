@@ -30,19 +30,19 @@ const ProfileScreen = ({ navigation }) => {
   // 1. Map IDs to Assets (Make sure this matches CommunityProfileCreation.js)
   const avatarMap = {
     1: require("../assets/FlowerAvatar.png"),
-      2: require("../assets/PersonAvatar.png"),
-      3: require("../assets/flower.png"),
-      4: require("../assets/cat.png"),
-      5: require("../assets/bear.png"),
-      6: require("../assets/woman.png"),
-      7: require("../assets/PenguinAvatar.png"),
-      8: require("../assets/LadyAvatar.png"),
-      9: require("../assets/owl.png"),
-      10: require("../assets/profile.png"),
+    2: require("../assets/PersonAvatar.png"),
+    3: require("../assets/flower.png"),
+    4: require("../assets/cat.png"),
+    5: require("../assets/bear.png"),
+    6: require("../assets/woman.png"),
+    7: require("../assets/PenguinAvatar.png"),
+    8: require("../assets/LadyAvatar.png"),
+    9: require("../assets/owl.png"),
+    10: require("../assets/profile.png"),
   };
   // 2. Get the current avatar or fallback to a default
-  const communityAvatar = user?.communityProfile?.avatarId 
-    ? avatarMap[user.communityProfile.avatarId] 
+  const communityAvatar = user?.communityProfile?.avatarId
+    ? avatarMap[user.communityProfile.avatarId]
     : BioIcon; // Default icon if none set
   const communityBio = user?.communityProfile?.bio || "No bio added yet.";
 
@@ -155,7 +155,11 @@ const ProfileScreen = ({ navigation }) => {
               text="Bio & Community Avatar"
               subtext={communityBio} // Displays saved bio
               actionText="Edit"
-              onPress={() => navigation.navigate("CommunityProfileCreation", { isEditing: true })}
+              onPress={() =>
+                navigation.navigate("CommunityProfileCreation", {
+                  isEditing: true,
+                })
+              }
             />
 
             <ProfileMenuItem
@@ -241,14 +245,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 15,
     left: 5,
     padding: 10,
     zIndex: 1,
   },
   backIcon: {
-    width: 30,
-    height: 30,
+    width: 35,
+    height: 35,
     tintColor: "#512DA8",
   },
   profileInfo: {

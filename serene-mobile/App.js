@@ -12,8 +12,6 @@ import { AuthProvider, AuthContext } from "./src/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
-
-// --- SCREEN IMPORTS ---
 import SplashScreen from "./src/screens/SplashScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import SignInScreen from "./src/screens/SignInScreen";
@@ -24,9 +22,9 @@ import Questionnaire1 from "./src/screens/Questionnaire1";
 import Questionnaire2 from "./src/screens/Questionnaire2";
 import Questionnaire3 from "./src/screens/Questionnaire3";
 import Questionnaire4 from "./src/screens/Questionnaire4";
-import Questionnaire5 from "./src/screens/Questionnaire5"; // ⬅️ ADD THIS
-import Questionnaire6 from "./src/screens/Questionnaire6"; // ⬅️ ADD THIS
-import Questionnaire7 from "./src/screens/Questionnaire7"; // ⬅️ ADD THIS
+import Questionnaire5 from "./src/screens/Questionnaire5";
+import Questionnaire6 from "./src/screens/Questionnaire6"; 
+import Questionnaire7 from "./src/screens/Questionnaire7"; 
 import MoodStatsScreen from "./src/screens/MoodStatsScreen";
 import PersonalizedRecommendationsScreen from "./src/screens/PersonalizedRecommendationScreen";
 import QuizCompletionScreen from "./src/screens/QuizCompletionScreen";
@@ -155,6 +153,7 @@ const requiredImages = [
   require("./src/assets/LadyAvatar.png"),
   require("./src/assets/PenguinAvatar.png"),
   require("./src/assets/AnonymousUser.png"),
+  require("./src/assets/lockYellow.png"),
 ];
 
 const Stack = createStackNavigator();
