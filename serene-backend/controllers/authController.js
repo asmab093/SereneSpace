@@ -215,19 +215,22 @@ exports.forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // --- EMAIL TRANSPORT SETUP ---
-    // --- UPDATED EMAIL TRANSPORT SETUP ---
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // true for 465, false for other ports
+      port: 587,
+      secure: false, // Must be false for port 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      // Adding a timeout setting so it doesn't hang for 4 minutes
-      connectionTimeout: 10000, // 10 seconds
+      tls: {
+        // This is critical for cloud hosting environments
+        rejectUnauthorized: false,
+        minVersion: "TLSv1.2"
+      },
+      connectionTimeout: 20000, // Giving it 20 seconds
     });
-
+    
     const mailOptions = {
       from: `"Serene Space Support" <${process.env.EMAIL_USER}>`,
       to: email,
