@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer"); 
+const nodemailer = require("nodemailer");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -246,13 +246,15 @@ exports.forgotPassword = async (req, res) => {
       .status(200)
       .json({ success: true, message: "OTP sent to your email!" });
   } catch (error) {
-    console.error("Mail Error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to send email. Please try again later.",
-      });
+    // <--- UPDATE STARTING FROM HERE
+    // This will print the EXACT error from Google/Nodemailer in your Render logs
+    console.error("DETAILED MAIL ERROR:", error.message);
+    console.error("ERROR CODE:", error.code);
+
+    return res.status(500).json({
+      success: false,
+      message: `Mail Error: ${error.code || "Unknown"}`,
+    });
   }
 };
 
