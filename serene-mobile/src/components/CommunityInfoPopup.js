@@ -55,7 +55,6 @@ const CommunityInfoPopup = ({ isVisible, onClose }) => {
   ];
 
   return (
-    // Modal handles the visibility and full-screen overlay
     <Modal
       animationType="fade"
       transparent={true}
@@ -125,7 +124,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // --- Header ---
   header: {
     width: "100%",
     flexDirection: "row",
@@ -134,7 +132,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    // fontWeight: "bold",
     color: "#333",
     fontFamily: "Quicksand-Bold",
   },
@@ -156,7 +153,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  // --- Info Rows ---
   infoList: {
     width: "100%",
   },
@@ -190,7 +186,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // --- Footer ---
   footerWarning: {
     marginTop: 10,
     paddingHorizontal: 10,

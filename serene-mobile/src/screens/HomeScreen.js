@@ -247,7 +247,6 @@ const styles = StyleSheet.create({
   fullScreenContainer: {
     flex: 1,
   },
-
   headerArea: {
     backgroundColor: "#F7F4FD",
   },

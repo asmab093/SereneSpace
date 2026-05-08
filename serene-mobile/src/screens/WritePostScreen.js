@@ -16,7 +16,6 @@ import axios from "axios";
 import Toast from "react-native-toast-message";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-
 const BackIcon = require("../assets/BackIcon.png");
 // const AvatarIcon = require("../assets/woman.png"); // User's profile image
 
@@ -96,14 +95,16 @@ const WritePostScreen = ({ navigation, route }) => {
 
         <TouchableOpacity
           onPress={handlePostPress}
-          disabled={!isPostEnabled}
+          disabled={!isPostEnabled || loading}
           style={[
             styles.headerButton,
             styles.postButton,
-            !isPostEnabled && styles.disabledButton,
+            (!isPostEnabled || loading) && styles.disabledButton,
           ]}
         >
-          <Text style={styles.postButtonText}>Post</Text>
+          <Text style={styles.postButtonText}>
+            {loading ? "Posting..." : "Post"}
+          </Text>
         </TouchableOpacity>
       </View>
 

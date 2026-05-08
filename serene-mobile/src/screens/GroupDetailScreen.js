@@ -173,7 +173,7 @@ const GroupDetailScreen = ({ navigation, route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -237,26 +237,23 @@ const GroupDetailScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F3FF" },
-
-  // --- Header ---
-  // --- Header ---
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    backgroundColor: "#FFFFFF",
+    paddingBottom: 10,
+    elevation: 4,
+    width: "100%",
+    marginBottom: 5, 
     backgroundColor: "#D7D9F4", 
-    paddingBottom: 15, 
-    elevation: 4, 
-    width: "100%", 
-    marginBottom: 10,
   },
   backButton: { 
-    padding: 0, 
-    marginRight: 0 
+    padding: 5, 
   }, 
   backIcon: { 
-    width: 24, 
-    height: 24, 
+    width: 30, 
+    height: 30, 
     tintColor: "#512DA8", 
     resizeMode: 'contain' 
   }, 
@@ -265,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     color: "#512DA8", 
     fontFamily: "Quicksand-Bold", 
-    marginLeft: 15 
+    marginLeft: 5 
   },
   headerGroupInfo: {
     flexDirection: "row",

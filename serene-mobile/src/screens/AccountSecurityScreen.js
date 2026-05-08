@@ -246,11 +246,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingTop: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     backgroundColor: "#D7D9F4",
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
-    paddingBottom: 10,
+    paddingBottom: 8,
   },
   backButton: {
     padding: 5,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
-    marginLeft: 15,
+    marginLeft: 5,
   },
   scrollContent: {
     paddingVertical: 10,

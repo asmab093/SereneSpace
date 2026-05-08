@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/dove-logo.png",
+      "image": "./src/assets/dove-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,19 +16,22 @@
       "supportsTablet": true
     },
     "android": {
+      "softwareKeyboardLayoutMode": "adjustResize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/dove-logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.briha43.SereneSpace"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-font",
-      "expo-asset",
-      "expo-video"
-    ]
+    "plugins": ["expo-font", "expo-asset", "expo-video"],
+    "extra": {
+      "eas": {
+        "projectId": "f75f2d51-017a-4c3a-82bb-32d32feadd2e"
+      }
+    }
   }
 }

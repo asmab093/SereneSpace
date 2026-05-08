@@ -268,7 +268,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -362,24 +362,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     backgroundColor: "#FFFFFF",
-    paddingBottom: 15,
+    paddingBottom: 8,
     elevation: 4,
     width: "100%",
-    marginBottom: 5,
+    marginBottom: 0,
   },
-  backButton: { padding: 0, marginRight: 0 },
+  backButton: { padding: 5 },
   backIcon: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     tintColor: "#512DA8",
     resizeMode: "contain",
   },
   headerTitle: {
     fontSize: 18,
     color: "#512DA8",
-    marginLeft: 15,
+    marginLeft: 5,
     fontFamily: "Quicksand-Bold",
     flex: 1,
   },

@@ -129,27 +129,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
     paddingHorizontal: 15,
     backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    marginBottom: 6,
+    elevation: 4,
+    width: "100%",
   },
   backButton: { padding: 5 },
   backIcon: { width: 30, height: 30, tintColor: "#512DA8" },
   headerTitle: {
     fontSize: 18,
-    // fontWeight: "bold",
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
-    marginLeft: 10,
+    marginLeft: 5,
   },
   scrollContent: {
     paddingBottom: 40,
   },
-
-  // --- Banner Styles ---
   banner: {
     backgroundColor: "#D7D9F4",
     paddingHorizontal: 20,

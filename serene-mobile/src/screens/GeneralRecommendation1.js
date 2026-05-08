@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    paddingHorizontal: 20, 
+    paddingHorizontal: 15, 
     backgroundColor: "#FFFFFF", 
     paddingBottom: 15, 
     elevation: 4, 
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     marginRight: 0 // Neutralized so it doesn't add extra unseen space
   }, 
   backIcon: { 
-    width: 24, 
-    height: 24, 
+    width: 30, 
+    height: 30, 
     tintColor: "#512DA8", 
     resizeMode: 'contain' 
   }, 
@@ -211,10 +211,8 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     color: "#512DA8", 
     fontFamily: "Quicksand-Bold", 
-    marginLeft: 15 // Added to exactly match the other screens
+    marginLeft: 5 
   },
-
-  // --- Warning Box ---
   warningBox: {
     backgroundColor: "#FFFFFF",
     borderRadius: 10,

@@ -209,8 +209,11 @@ const MoodStatsScreen = ({ navigation }) => {
         colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
         style={styles.container}
       >
-        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+        <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
             <Image source={BackIcon} style={styles.backIcon} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Your Mood Stats</Text>
@@ -352,15 +355,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingHorizontal: 15,
+    paddingBottom: 8,
     backgroundColor: "#FFF",
     width: "100%",
     elevation: 4,
   },
+  backButton: {
+    padding: 5,
+  },
   backIcon: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     tintColor: "#512DA8",
     resizeMode: "contain",
   },
@@ -368,7 +374,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
-    marginLeft: 15,
+    marginLeft: 5,
   },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   mainContent: {
@@ -434,7 +440,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  btnText: { color: "rgb(255, 255, 255)", fontSize: 16, fontFamily: "Quicksand-Bold" },
+  btnText: {
+    color: "rgb(255, 255, 255)",
+    fontSize: 16,
+    fontFamily: "Quicksand-Bold",
+  },
   footerWrapper: { position: "absolute", bottom: 0, width: "100%" },
   lockContent: {
     alignItems: "center",

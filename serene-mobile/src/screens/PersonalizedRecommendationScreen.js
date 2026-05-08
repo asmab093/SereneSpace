@@ -70,7 +70,7 @@ const PersonalizedRecommendationsScreen = ({ navigation, route }) => {
       colors={["#D7D9F4", "#E8E3F9", "#F4F3FF"]}
       style={styles.container}
     >
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -197,15 +197,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     backgroundColor: "#FFFFFF",
-    paddingBottom: 15,
+    paddingBottom: 10,
     elevation: 4,
     width: "100%",
   },
+   backButton: {
+    padding: 5,
+  },
   backIconStyle: {
-    width: 24,
-    height: 24,
+    width:30,
+    height: 30,
     tintColor: "#512DA8",
     resizeMode: "contain",
   },
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
-    marginLeft: 15,
+    marginLeft: 5,
   },
   tipCard: {
     backgroundColor: "#FFF",
@@ -307,12 +310,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 40,
     alignItems: "center",
     flex:1,
-    justifyContent:'flex-end'
+    justifyContent:'flex-end',
   },
   resourceHeader: {
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
-    marginBottom: 20,
+    marginBottom: 15,
+    textAlign:'center',
+    // borderWidth:1,
     fontSize: 16,
   },
   actionBtn: {
@@ -324,8 +329,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionBtnText: { color: "#FFF", fontFamily: "Quicksand-Bold", fontSize: 16 },
-
-  // ✅ NEW STYLES FOR LOCKED STATE
   emptyContainer: {
     justifyContent: "center",
     alignItems: "center",

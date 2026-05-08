@@ -303,7 +303,7 @@ const CrisisSupportScreen = ({ navigation, route }) => {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 5 }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -364,24 +364,16 @@ const styles = StyleSheet.create({
     color: "#8b0fa4",
   },
   header: {
-    // paddingTop: 10,
-    // flexDirection: "row",
-    // alignItems: "center",
-    // paddingHorizontal: 15,
-    // backgroundColor: "#FFFFFF",
-    // paddingBottom: 5,
-    // elevation: 4,
-    // width: "100%",
-    // marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingHorizontal: 15,
+    // paddingTop: 5,
+    paddingBottom: 8,
+    // paddingHorizontal: 15,
+    paddingHorizontal: 10,
     backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-    marginBottom: 6,
+    marginBottom: 10,
+    elevation: 4,
+    width: "100%",
   },
   backButton: { padding: 5 },
   backIcon: {
@@ -392,12 +384,10 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    // fontWeight: "bold",
     color: "#512DA8",
     fontFamily: "Quicksand-Bold",
-    marginLeft: 20,
+    marginLeft: 5,
   },
-  // --- Tab Bar ---
   tabBar: {
     flexDirection: "row",
     justifyContent: "space-between",
