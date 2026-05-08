@@ -226,11 +226,11 @@ exports.forgotPassword = async (req, res) => {
       tls: {
         // This is critical for cloud hosting environments
         rejectUnauthorized: false,
-        minVersion: "TLSv1.2"
+        minVersion: "TLSv1.2",
       },
       connectionTimeout: 20000, // Giving it 20 seconds
     });
-    
+
     const mailOptions = {
       from: `"Serene Space Support" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -247,7 +247,7 @@ exports.forgotPassword = async (req, res) => {
                 </div>
             `,
     };
-
+    console.log(`ATTEMPTING EMAIL TO: ${email} WITH OTP: ${otp}`);
     await transporter.sendMail(mailOptions);
 
     return res
