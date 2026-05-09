@@ -128,7 +128,7 @@ exports.loginUser = async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
-        hasAddedContact: user.hasAddedContact, // ⬅️ Crucial for our navigation logic
+        hasAddedContact: user.hasAddedContact, // Crucial for our navigation logic
         token: generateToken(user._id),
         createdAt: user.createdAt,
         emergencyContact: user.emergencyContact,
@@ -162,7 +162,7 @@ exports.updateUsername = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    // ✅ Return the user object so the frontend can call login(updatedUser)
+    // Return the user object so the frontend can call login(updatedUser)
     res.status(200).json({
       success: true,
       _id: user._id,
@@ -198,7 +198,6 @@ exports.updatePassword = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // exports.forgotPassword = async (req, res) => {
 //   try {
@@ -274,15 +273,17 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetPasswordOTP = otp;
-    user.resetPasswordExpires = Date.now() + 600000; 
+    user.resetPasswordExpires = Date.now() + 600000;
     await user.save({ validateBeforeSave: false });
 
-    // 💡 DEMO LOG: This is what you will show the examiners
+    // This is what you will show the examiners
     console.log("-----------------------------------------");
     console.log(`SECURITY ALERT: OTP FOR ${email} IS: ${otp}`);
     console.log("-----------------------------------------");
@@ -294,23 +295,29 @@ exports.forgotPassword = async (req, res) => {
       port: 587,
       secure: false,
       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-      tls: { rejectUnauthorized: false }
+      tls: { rejectUnauthorized: false },
     });
 
     // We don't use 'await' here so the screen moves to Step 2 immediately
-    transporter.sendMail({
-      from: `"Serene Space Support" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Your Password Reset OTP",
-      text: `Your OTP is ${otp}`
-    }).catch(err => console.log("Background Mail Error (Normal for Free Tier):", err.message));
+    transporter
+      .sendMail({
+        from: `"Serene Space Support" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Your Password Reset OTP",
+        text: `Your OTP is ${otp}`,
+      })
+      .catch((err) =>
+        console.log(
+          "Background Mail Error (Normal for Free Tier):",
+          err.message,
+        ),
+      );
 
     // ALWAYS return success so your app proceeds to the OTP entry screen
-    return res.status(200).json({ 
-      success: true, 
-      message: "For demo purposes, check the server logs for your OTP!" 
+    return res.status(200).json({
+      success: true,
+      message: "For demo purposes, check the server logs for your OTP!",
     });
-
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
     return res.status(500).json({ success: false, message: "Server Error" });

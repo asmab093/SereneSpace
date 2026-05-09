@@ -6,9 +6,9 @@ const classifyMessage = async (text) => {
   // ---------------------------------------------------------
   const textLower = text.toLowerCase();
   const crisisKeywords = [
-    "jump off","jump from", "kill", "suicide", "end it", "harm", "suicidal","suicidal thoughts",
-    "death", "overdose", "taking my own life", "disappear permanently",
-    "hurt myself","hurt my self", "end it all tonight", "can't go on","cant go on", "no reason to live",
+    "jump off","jump from", "kill", "suicide", "harm", "suicidal","suicidal thoughts",
+    , "overdose", "taking my own life", "disappear permanently",
+    "hurt myself","hurt my self", "end it all tonight",  "no reason to live",
     "done with life", "goodbye forever",
     "want to die"
   ];

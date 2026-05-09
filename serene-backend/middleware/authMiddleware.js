@@ -15,10 +15,8 @@ const protect = async (req, res, next) => {
 
       // 3. Verify the token using your JWT_SECRET from .env
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
       // 4. Find the user in DB and attach to the request object (excluding password)
       req.user = await User.findById(decoded.id).select("-password");
-
       next(); // Move to the next function (the controller)
     } catch (error) {
       console.error("Auth Middleware Error:", error);
