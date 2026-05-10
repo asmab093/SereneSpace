@@ -21,7 +21,7 @@
         "foregroundImage": "./src/assets/dove-logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      
       "package": "com.briha43.SereneSpace"
     },
     "web": {

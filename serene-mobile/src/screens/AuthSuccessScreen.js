@@ -20,11 +20,8 @@ const AuthSuccessScreen = ({route, navigation }) => {
           style={styles.successIcon}
           resizeMode="contain"
         />
-
         <Text style={styles.title}>{mode === 'signup' ? "Welcome Aboard!" : "Authentication Successful!"}</Text>
-
         <CustomButton title="Continue to Home" onPress={() => navigation.navigate("Home")} />
-
         {/* <CustomButton title="Add Emergency Contacts" onPress={() => navigation.navigate("AddContact")} /> */}
       </View>
     </LinearGradient> // Collapse closing tags to one line or ensure they are properly aligned.

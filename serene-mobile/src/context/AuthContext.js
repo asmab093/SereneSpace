@@ -12,13 +12,13 @@ export const AuthProvider = ({ children }) => {
   // const API_URL = "http://192.168.1.7:5000/api"; // Use this for Android emulator
   const API_URL = "https://serene-space-backend.onrender.com/api";
 
-  // ✅ HELPER: Check if user is a member of a group
+  // HELPER: Check if user is a member of a group
   // Returns true if the groupTitle exists in the user's joinedGroups array
   const isGroupJoined = (groupTitle) => {
     return user?.joinedGroups?.includes(groupTitle) || false;
   };
 
-  // ✅ HELPER: Update user data locally and in AsyncStorage
+  // HELPER: Update user data locally and in AsyncStorage
   // Use this when joining a group or updating a profile to keep UI in sync
   const updateLocalUser = async (newData) => {
     try {

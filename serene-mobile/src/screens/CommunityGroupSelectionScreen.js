@@ -137,7 +137,7 @@ const CommunityGroupSelectionScreen = ({ navigation }) => {
       );
 
       if (response.data.success) {
-        // 3. ✅ Update local Context state
+        // 3. Update local Context state
         // This will automatically move the group back to "Browse"
         // because our renderContent filters by user.joinedGroups
         setUser(response.data.data);

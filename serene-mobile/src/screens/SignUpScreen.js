@@ -21,16 +21,14 @@ const EyeOpen = require("../assets/eye-open.png");
 const EyeClosed = require("../assets/eye-close.png");
 
 const SignUpScreen = ({ navigation }) => {
-  // ✅ Get the 'login' helper instead of manual setStates
-  const { API_URL, login } = useContext(AuthContext);
 
+  const { API_URL, login } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
 

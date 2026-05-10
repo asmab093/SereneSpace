@@ -25,7 +25,6 @@ const GroupDetailScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const { user, API_URL, token } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
-  // const isMember = isGroupJoined(groupTitle);
   const [bioPopupContent, setBioPopupContent] = useState(null); // Holds bio text if popup is visible
   // Extract groupId along with groupTitle and isMember
   const { groupTitle, isMember, groupId } = route.params || {
@@ -59,7 +58,6 @@ const GroupDetailScreen = ({ navigation, route }) => {
       await axios.delete(`${API_URL}/posts/replies/${replyId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       // Update Modal UI
       setSelectedPostForReply((prev) => ({
         ...prev,

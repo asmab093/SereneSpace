@@ -49,80 +49,89 @@ const ReplyModal = ({
     }
   };
 
- return (
-  <Modal
-    visible={isVisible}
-    animationType="slide"
-    transparent={true}
-    onRequestClose={onClose}
-    statusBarTranslucent // This helps Android ignore top/bottom bars
-  >
-    <View style={styles.overlay}>
-      <TouchableOpacity
-        style={styles.backdrop}
-        activeOpacity={1}
-        onPress={onClose}
-      />
+  return (
+    <Modal
+      visible={isVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+      statusBarTranslucent // This helps Android ignore top/bottom bars
+    >
+      <View style={styles.overlay}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.modalContainer}
-      >
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Replies</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeBtn}>Close</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* SCROLLABLE LIST */}
-        <ScrollView
-          style={styles.repliesList}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollPadding}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.modalContainer}
         >
-          <View style={styles.mainPostContext}>
-            <Text style={styles.contextUser}>{displayName}</Text>
-            <Text style={styles.contextText}>{post?.content}</Text>
-          </View>
-          <View style={styles.divider} />
-          {post?.replies?.map((item) => (
-            <View key={item._id} style={styles.replyItemContainer}>
-              <View style={styles.replyItem}>
-                <Text style={styles.replyUser}>{item.user?.username}</Text>
-                <Text style={styles.replyText}>{item.content}</Text>
-              </View>
-              {item.user?._id === currentUserId && (
-                <TouchableOpacity onPress={() => confirmDeleteReply(item._id)} style={styles.trashTouchArea}>
-                  <Image source={TrashIcon} style={styles.trashIconStyle} />
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* INPUT AREA - Absolute bottom logic */}
-        <View style={styles.inputWrapper}>
-          <View style={styles.inputArea}>
-            <TextInput
-              style={styles.input}
-              placeholder="Write a reply..."
-              value={replyText}
-              onChangeText={setReplyText}
-              multiline
-              placeholderTextColor="#A3A3A3"
-            />
-            <TouchableOpacity onPress={handleSend} disabled={isSending || !replyText.trim()} style={styles.sendBtn}>
-              <Text style={styles.sendBtnText}>{isSending ? "..." : "Post"}</Text>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Replies</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeBtn}>Close</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
-  </Modal>
-);
+
+          {/* SCROLLABLE LIST */}
+          <ScrollView
+            style={styles.repliesList}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollPadding}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.mainPostContext}>
+              <Text style={styles.contextUser}>{displayName}</Text>
+              <Text style={styles.contextText}>{post?.content}</Text>
+            </View>
+            <View style={styles.divider} />
+            {post?.replies?.map((item) => (
+              <View key={item._id} style={styles.replyItemContainer}>
+                <View style={styles.replyItem}>
+                  <Text style={styles.replyUser}>{item.user?.username}</Text>
+                  <Text style={styles.replyText}>{item.content}</Text>
+                </View>
+                {item.user?._id === currentUserId && (
+                  <TouchableOpacity
+                    onPress={() => confirmDeleteReply(item._id)}
+                    style={styles.trashTouchArea}
+                  >
+                    <Image source={TrashIcon} style={styles.trashIconStyle} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* INPUT AREA - Absolute bottom logic */}
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputArea}>
+              <TextInput
+                style={styles.input}
+                placeholder="Write a reply..."
+                value={replyText}
+                onChangeText={setReplyText}
+                multiline
+                placeholderTextColor="#A3A3A3"
+              />
+              <TouchableOpacity
+                onPress={handleSend}
+                disabled={isSending || !replyText.trim()}
+                style={styles.sendBtn}
+              >
+                <Text style={styles.sendBtnText}>
+                  {isSending ? "..." : "Post"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -135,8 +144,8 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
-    position: 'absolute', 
-    bottom: 0,          
+    position: "absolute",
+    bottom: 0,
     left: 0,
     right: 0,
     height: "80%",
@@ -149,7 +158,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     backgroundColor: "white",
     // This padding covers the Android navigation bar area
-    paddingBottom: Platform.OS === "ios" ? 30 : 20, 
+    paddingBottom: Platform.OS === "ios" ? 30 : 20,
     borderTopWidth: 1,
     borderTopColor: "#EEE",
     marginHorizontal: -20, // Expand to edges
@@ -161,7 +170,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "white",
   },
-  
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

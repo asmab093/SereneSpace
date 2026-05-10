@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
+import {View, Text, Image, TouchableOpacity, StyleSheet, Alert,
 } from "react-native";
 import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
@@ -44,7 +38,7 @@ const SignInScreen = ({ navigation }) => {
   const handleSignIn = async () => {
     setLoading(true);
     if (!email || !password) {
-      setLoading(false); // Added to stop loading spinner
+      setLoading(false); // to stop loading spinner
       Alert.alert("Missing Fields", "Please enter both email and password.");
       return;
     }
@@ -55,13 +49,13 @@ const SignInScreen = ({ navigation }) => {
         password,
       });
       console.log("response is", response.data);
-
       if (response.data.success) {
         console.log(response.data);
         // This saves 'response.data{entire user object}' to both State and AsyncStorage
         await login(response.data);
         // Use the specific boolean from the object to decide where to go
         if (response.data.hasAddedContact) {
+          //nav.replace deletes the current screen from the history.
           navigation.replace("AuthSuccess", { mode: "login" });
         } else {
           navigation.replace("AddContact", { userId: response.data._id });

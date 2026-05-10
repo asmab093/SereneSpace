@@ -25,9 +25,9 @@ const relationData = [
   { label: "Friend", value: "Friend" },
 ];
 
-// 🌍 Expanded Country Data with specific digit limits
+// Expanded Country Data with specific digit limits
 const countryData = [
-  { label: "Pakistan (+92)", value: "+92", maxLength: 10 }, // ⬅️ UPDATED: Max length is now 10
+  { label: "Pakistan (+92)", value: "+92", maxLength: 10 }, 
   { label: "USA/Canada (+1)", value: "+1", maxLength: 10 },
   { label: "UK (+44)", value: "+44", maxLength: 11 },
   { label: "India (+91)", value: "+91", maxLength: 10 },
@@ -47,29 +47,26 @@ const countryData = [
 
 const AddContactScreen = ({ route, navigation }) => {
   const { API_URL, setUser, user, login } = useContext(AuthContext); 
-  const { userId, existingContact } = route?.params || {}; 
+  const { userId, existingContact } = route?.params || {};  //userId sent from SignInScr to later link emer contact with this user
   
   const [name, setName] = useState(existingContact?.name || "");
   const [relation, setRelation] = useState(existingContact?.relation || null);
   const [countryCode, setCountryCode] = useState(existingContact?.countryCode || null);
   const [phone, setPhone] = useState(existingContact?.phone || "");
-
   const [isFocus, setIsFocus] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
-  // 🧠 Dynamically calculate the max length based on the selected country
+  // Dynamically calculate the max length based on the selected country
   const selectedCountry = countryData.find(c => c.value === countryCode);
   const currentMaxLength = selectedCountry ? selectedCountry.maxLength : 15;
 
-  // 🚨 NEW: Actively block leading zeros and non-numbers in real-time
+  //Actively block leading zeros and non-numbers in real-time
   const handlePhoneChange = (text) => {
     let cleanedText = text.replace(/[^0-9]/g, ""); // Keep only numbers
-    
     // If they try to type a 0 as the very first digit, delete it immediately
     if (cleanedText.startsWith("0")) {
-      cleanedText = cleanedText.substring(1);
+      cleanedText = cleanedText.substring(1);  
     }
-    
     setPhone(cleanedText);
   };
 
@@ -105,7 +102,7 @@ const AddContactScreen = ({ route, navigation }) => {
         
         await login(updatedUser);
         
-        const isUpdating = !!existingContact; 
+        const isUpdating = !!existingContact; //truthy non empty string 
 
         Toast.show({
             type: "success",

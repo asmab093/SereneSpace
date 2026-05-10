@@ -1,15 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Modal,
+import {View,Text,StyleSheet,ScrollView,Image,TouchableOpacity,
+  TextInput,KeyboardAvoidingView,Platform,Modal,
 } from "react-native";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -59,20 +50,21 @@ const ChatBotScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { token } = useContext(AuthContext);
   const [inputText, setInputText] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]);//An array that stores the conversation history.
+  // // When this updates, React re-renders the screen to show new bubbles.
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingInstance, setRecordingInstance] = useState(null);
-  const scrollViewRef = useRef();
+  const [recordingInstance, setRecordingInstance] = useState(null);//Holds the actual audio object from expo-av while the user is speaking.
+  const scrollViewRef = useRef();//A "Reference" to the scrolling list. We use this to force the list to scroll to the bottom automatically when a new message arrives.
 
-  // ✅ SCENARIO & CRISIS STATES
+  //  SCENARIO & CRISIS STATES
   const [modalVisible, setModalVisible] = useState(false);
-  const [currentScenario, setCurrentScenario] = useState(null);
+  const [currentScenario, setCurrentScenario] = useState(null);//what kind of crisis it is
   const [activeVideoUrl, setActiveVideoUrl] = useState(null);
 
-  // 🚨 NEW: Alert Banner State
+  // Alert Banner State
   const [showAlert, setShowAlert] = useState(false);
-
+//Auto-Scroll Logic
   useEffect(() => {
     if (messages.length > 0) {
       const timeoutId = setTimeout(() => {
@@ -82,6 +74,8 @@ const ChatBotScreen = ({ navigation }) => {
     }
   }, [messages]);
 
+  //This runs once when the screen opens. It asks the user for permission to use the microphone. 
+  // If you don't do this, the "Mic" button will fail on the APK.
   useEffect(() => {
     const setupAudio = async () => {
       try {
@@ -97,6 +91,8 @@ const ChatBotScreen = ({ navigation }) => {
     setupAudio();
   }, []);
 
+
+  //This checks if the user is logged in (token). If yes, it calls your Render backend to get old messages
   useEffect(() => {
     const fetchHistory = async () => {
       if (!token) return;
@@ -113,14 +109,18 @@ const ChatBotScreen = ({ navigation }) => {
     fetchHistory();
   }, [token]);
 
+  //This is a "Lock." It prevents a user from accidentally clicking "Start Recording"
+  //  twice in a single millisecond, which would crash the audio driver.
   const isProcessingAction = useRef(false);
 
-  // 🎤 RECORDING LOGIC START
+  // RECORDING LOGIC START
   async function startRecording() {
-    if (isProcessingAction.current) return;
+    if (isProcessingAction.current) return;//This is a "safety gate." It prevents the function from running again if
+    //  it’s already halfway through starting, which avoids double-triggering the microphone.
     isProcessingAction.current = true;
 
-    try {
+    try {  //If there's an old recording stuck in memory, this code stops it and cleans it up (stopAndUnloadAsync)
+    //  before starting a new one.
       if (recordingInstance) {
         try {
           await recordingInstance.stopAndUnloadAsync();
@@ -130,7 +130,7 @@ const ChatBotScreen = ({ navigation }) => {
         setRecordingInstance(null);
       }
 
-      const { status } = await Audio.requestPermissionsAsync();
+      const { status } = await Audio.requestPermissionsAsync();  //: A system call to ask the user: "Can SereneSpace use your microphone?"
       if (status !== "granted") {
         isProcessingAction.current = false;
         return;
@@ -140,7 +140,7 @@ const ChatBotScreen = ({ navigation }) => {
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-
+      //This is the actual "Record" button click. It starts capturing sound in High Quality.
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY,
       );
@@ -165,17 +165,17 @@ const ChatBotScreen = ({ navigation }) => {
 
     try {
       setIsRecording(false);
-      const status = await recordingInstance.getStatusAsync();
+      const status = await recordingInstance.getStatusAsync();  //Checks if the microphone is actually recording before trying to stop it.
       if (status.isRecording || status.canRecord) {
-        await recordingInstance.stopAndUnloadAsync();
+        await recordingInstance.stopAndUnloadAsync();//Stops the hardware from listening and saves the audio data to a temporary file on the phone
       }
 
-      const uri = recordingInstance.getURI();
+      const uri = recordingInstance.getURI();//Gets the local "address" of that audio file (e.g., file://.../speech.m4a).
       setRecordingInstance(null);
 
       if (uri) {
         console.log("✅ Recording saved at:", uri);
-        sendAudioToBackend(uri);
+        sendAudioToBackend(uri);  //Takes that file and hands it off to the next function to be turned into text.
       }
     } catch (err) {
       console.log("❌ Stop Recording Error:", err.message);
@@ -187,7 +187,7 @@ const ChatBotScreen = ({ navigation }) => {
 
   const sendAudioToBackend = async (uri) => {
     try {
-      const formData = new FormData();
+      const formData = new FormData();  //FormData, which is a special object that allows us to bundle key-value pairs and binary files together.
       formData.append("audio", {
         uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
         type: "audio/m4a",
@@ -238,7 +238,7 @@ const ChatBotScreen = ({ navigation }) => {
       };
       setMessages((prev) => [...prev, botMsg]);
 
-      // 🚨 NEW: Trigger the alert banner if SMS was sent
+      // nEW: Trigger the alert banner if SMS was sent
       if (alertSent) {
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 6000);
@@ -256,7 +256,7 @@ const ChatBotScreen = ({ navigation }) => {
     }
   };
 
-  // ✅ MODAL COMPONENT
+  // MODAL COMPONENT
   const CrisisModal = () => (
     <Modal transparent visible={modalVisible} animationType="slide">
       <View style={styles.modalOverlay}>
